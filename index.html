@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ForEdu - Komunitas & Ekonomi Kreatif Mahasiswa</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    colors: {
+                        brand: { 50: '#e8f7f7', 500: '#2eb8b8', 600: '#269c9c' },
+                        accent: { 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706' }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { background-color: #e8f7f7; }
+        @keyframes slideUpFade { 0% { transform: translateY(100%); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+        .toast-enter { animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes heartPop { 0% { transform: scale(1); } 50% { transform: scale(1.35); } 100% { transform: scale(1); } }
+        .heart-pop { animation: heartPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .avatar-option.selected { border-color: #2eb8b8; background-color: #e8f7f7; transform: scale(1.1); box-shadow: 0 4px 6px -1px rgba(46, 184, 184, 0.2); }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col relative">
+
+    <!-- ================= AUTH SCREEN (LOGIN/REGISTER) ================= -->
+    <div id="auth-screen" class="fixed inset-0 z-[100] bg-brand-50 flex flex-col justify-center items-center p-4 transition-opacity duration-300">
+        <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+            <div class="absolute -top-20 -left-20 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-0 right-0 w-[500px] h-[500px] bg-accent-500/10 rounded-full blur-3xl"></div>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-xl border border-slate-100 p-8 w-full max-w-md relative z-10">
+            <div class="text-center mb-6">
+                <div class="inline-flex items-center justify-center bg-brand-500 text-white p-3 rounded-2xl mb-4 shadow-lg shadow-brand-500/30">
+                    <i data-lucide="graduation-cap" class="w-10 h-10"></i>
+                </div>
+                <h1 id="auth-title" class="text-2xl font-extrabold text-slate-800 tracking-tight">Buat Akun Baru</h1>
+                <p id="auth-subtitle" class="text-slate-500 text-sm mt-2">Daftar untuk mulai berjejaring di kampus!</p>
+            </div>
+
+            <!-- Form -->
+            <form id="auth-form" onsubmit="window.submitAuth(event)" class="flex flex-col gap-4">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Username</label>
+                    <input type="text" id="auth-username" required placeholder="Contoh: adrian123" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-500/50 outline-none transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Password</label>
+                    <input type="password" id="auth-password" required placeholder="••••••••" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-500/50 outline-none transition-all">
+                </div>
+
+                <!-- Kolom khusus Register -->
+                <div id="register-fields" class="flex flex-col gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">Nama Panggilan</label>
+                        <input type="text" id="auth-name" placeholder="Contoh: Adrian P." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-500/50 outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">Kampus</label>
+                        <select id="auth-campus" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-500/50 outline-none transition-all appearance-none cursor-pointer">
+                            <option value="Binus Malang">Binus University (Malang)</option>
+                            <option value="Binus Kemanggisan">Binus University (Kemanggisan)</option>
+                            <option value="Binus Alam Sutera">Binus University (Alam Sutera)</option>
+                            <option value="Binus Bandung">Binus University (Bandung)</option>
+                            <option value="Universitas Indonesia">Universitas Indonesia</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Pilih Karaktermu</label>
+                        <div class="flex justify-between gap-2" id="avatar-selection-container"></div>
+                    </div>
+                </div>
+
+                <button type="submit" id="auth-btn" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl mt-2 transition-all active:scale-95 shadow-lg shadow-brand-500/25 flex justify-center items-center gap-2">
+                    Daftar Sekarang <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                </button>
+            </form>
+
+            <div class="mt-5 text-center">
+                <p class="text-sm text-slate-500">
+                    <span id="auth-switch-text">Sudah punya akun?</span> 
+                    <button onclick="window.toggleAuthMode()" id="auth-switch-btn" class="text-brand-500 font-bold hover:underline">Masuk</button>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 z-[200] bg-white flex flex-col justify-center items-center transition-opacity duration-300">
+        <div class="w-12 h-12 border-4 border-brand-200 border-t-brand-500 rounded-full animate-spin"></div>
+        <p class="mt-4 text-brand-500 font-bold animate-pulse">Menghubungkan ke Database...</p>
+    </div>
+
+    <!-- ================= MAIN APP WRAPPER ================= -->
+    <div id="main-app" class="hidden flex-col min-h-screen">
+        <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                <div class="flex items-center gap-8">
+                    <a href="#" class="flex items-center gap-2">
+                        <div class="bg-brand-500 text-white p-1.5 rounded-lg"><i data-lucide="graduation-cap" class="w-6 h-6"></i></div>
+                        <span class="text-2xl font-bold text-brand-500 tracking-tight">ForEdu</span>
+                    </a>
+                    <nav class="hidden md:flex items-center gap-6 font-medium text-slate-500">
+                        <a href="#" class="text-brand-500 border-b-2 border-brand-500 py-5">Beranda</a>
+                        <a href="#" class="hover:text-brand-500 transition-colors py-5">Forum & Live</a>
+                    </nav>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-1.5 bg-amber-50 text-accent-600 px-3 py-1.5 rounded-full border border-amber-200 shadow-sm">
+                        <i data-lucide="coins" class="w-4 h-4 fill-accent-500"></i>
+                        <span id="nav-coins" class="font-bold text-sm">0</span>
+                    </div>
+                    <div class="relative group cursor-pointer flex items-center gap-2 border-l border-slate-200 pl-4 ml-1">
+                        <img id="nav-profile-pic" src="" alt="Profile" class="w-9 h-9 rounded-full object-cover border border-slate-200 group-hover:ring-2 group-hover:ring-brand-500 transition-all bg-slate-100">
+                        <div class="absolute top-full right-0 mt-2 w-48 bg-white border border-slate-100 rounded-xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                            <button onclick="window.handleLogout()" class="w-full text-left px-4 py-3 text-sm text-red-500 font-semibold hover:bg-red-50 flex items-center gap-2 rounded-xl">
+                                <i data-lucide="log-out" class="w-4 h-4"></i> Keluar Akun
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 flex flex-col lg:flex-row gap-6">
+            <div class="w-full lg:w-2/3 flex flex-col gap-5">
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex flex-col gap-3">
+                    <div class="flex gap-3">
+                        <img id="post-input-avatar" src="" alt="Profile" class="w-10 h-10 rounded-full object-cover shrink-0 bg-slate-100 border border-slate-200">
+                        <textarea id="post-text" placeholder="Ada info penting apa di kampus hari ini?" rows="2" class="w-full bg-slate-50 border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-brand-500/20 outline-none resize-none"></textarea>
+                    </div>
+                    <div id="image-preview-container" class="hidden pl-13 relative w-max mt-2">
+                        <img id="image-preview" class="h-32 rounded-xl object-cover border border-slate-200">
+                        <button onclick="window.removeImage()" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow-md"><i data-lucide="x" class="w-4 h-4"></i></button>
+                    </div>
+                    <div class="flex items-center justify-between pl-12 sm:pl-13">
+                        <div class="flex gap-2">
+                            <input type="file" id="image-input" accept="image/*" class="hidden" onchange="window.previewImage(event)">
+                            <button onclick="document.getElementById('image-input').click()" class="p-2 text-slate-400 hover:text-brand-500 hover:bg-brand-50 rounded-full transition-colors"><i data-lucide="image" class="w-5 h-5"></i></button>
+                        </div>
+                        <button onclick="window.submitPost()" class="bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold py-2 px-5 rounded-full shadow-sm shadow-brand-500/20 transition-all active:scale-95">Kirim Post</button>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4 py-2">
+                    <div class="h-px bg-slate-200 flex-1"></div><span class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Feed Database</span><div class="h-px bg-slate-200 flex-1"></div>
+                </div>
+
+                <div id="feed-container" class="flex flex-col gap-5"></div>
+                <div class="h-10"></div>
+            </div>
+
+            <div class="w-full lg:w-1/3 flex flex-col gap-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden relative">
+                    <div class="bg-brand-500 h-24 relative"></div>
+                    <img id="profile-card-avatar" src="" alt="My Profile" class="absolute top-12 left-6 w-20 h-20 rounded-full border-4 border-white shadow-sm object-cover bg-white">
+                    <div class="absolute top-0 right-6 bg-brand-600 text-white rounded-b-2xl px-3 py-4 shadow-md flex flex-col items-center">
+                        <span class="text-[9px] font-bold uppercase tracking-wider mb-1 opacity-90">Level</span>
+                        <span id="profile-card-level" class="text-sm font-black">Maba</span>
+                    </div>
+                    <div class="pt-12 px-6 pb-6">
+                        <div class="flex items-center gap-1 mb-1">
+                            <h2 id="profile-card-name" class="text-lg font-bold text-slate-800">Nama User</h2>
+                            <i data-lucide="badge-check" class="w-4 h-4 text-brand-500 fill-brand-50"></i>
+                        </div>
+                        <p id="profile-card-campus" class="text-sm text-slate-500 flex items-center gap-1.5 mb-4">
+                            <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> Nama Kampus
+                        </p>
+                        <div class="grid grid-cols-2 gap-2 text-center bg-slate-50 rounded-xl p-3 border border-slate-100">
+                            <div class="border-r border-slate-200">
+                                <div id="profile-post-count" class="text-lg font-bold text-slate-800">0</div>
+                                <div class="text-[10px] font-semibold text-slate-400 uppercase">Postingan</div>
+                            </div>
+                            <div>
+                                <div class="text-lg font-bold text-slate-800">Aktif</div>
+                                <div class="text-[10px] font-semibold text-slate-400 uppercase">Status</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-white via-white to-amber-50/60 rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden">
+                    <i data-lucide="coins" class="absolute -bottom-6 -right-6 w-32 h-32 text-amber-100/50 fill-amber-100/50 -rotate-12 pointer-events-none"></i>
+                    <h3 class="font-bold text-slate-700 flex items-center gap-2 mb-2"><i data-lucide="wallet" class="w-5 h-5 text-accent-500"></i> Dompet</h3>
+                    <div class="mb-5 mt-4 relative z-10">
+                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Total Saldo</p>
+                        <h2 class="text-3xl font-black text-slate-800 tracking-tight"><span id="wallet-coins">0</span> <span class="text-lg text-accent-500">🪙</span></h2>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- ================= JAVASCRIPT & FIREBASE INTEGRATION ================= -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Setup Firebase
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        // Globals
+        let currentUser = null; // Menyimpan profil user yang login
+        let isLoginMode = false;
+        let posts = [];
+        let uploadedImageBase64 = null;
+        let openCommentSections = [];
+        let postsUnsubscribe = null;
+
+        const avatarOptions = [
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=e8f7f7",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka&backgroundColor=fef3c7",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Jocelyn&backgroundColor=ffe4e6",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Nala&backgroundColor=dcfce3",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Leo&backgroundColor=e0e7ff"
+        ];
+        let selectedAvatarIndex = 0;
+
+        // Fungsi Helper Toast
+        window.showToast = (message) => {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'bg-slate-800 text-white px-5 py-3 rounded-full shadow-xl flex items-center gap-3 toast-enter pointer-events-auto border border-slate-700/50 backdrop-blur-sm bg-slate-800/90';
+            toast.innerHTML = `<div class="bg-brand-500/20 p-1 rounded-full text-brand-400"><i data-lucide="check-circle-2" class="w-5 h-5"></i></div><span class="text-sm font-medium tracking-wide">${message}</span>`;
+            container.appendChild(toast);
+            lucide.createIcons({ root: toast });
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateY(100%)'; setTimeout(() => toast.remove(), 400); }, 3500);
+        };
+
+        // --- Inisialisasi Firebase Auth & Aplikasi ---
+        async function initApp() {
+            lucide.createIcons();
+            window.renderAvatarOptions();
+
+            // Login ke Firebase Environment
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+                await signInAnonymously(auth);
+            }
+
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    // Cek apakah di browser ini sudah ada sesi tersimpan
+                    const savedUsername = localStorage.getItem('foredu_active_username');
+                    if (savedUsername) {
+                        // Ambil data user dari Firestore
+                        const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'app_users', savedUsername);
+                        const userSnap = await getDoc(userRef);
+                        if (userSnap.exists()) {
+                            currentUser = userSnap.data();
+                            startApp();
+                            return;
+                        } else {
+                            localStorage.removeItem('foredu_active_username');
+                        }
+                    }
+                    
+                    // Jika tidak ada, tampilkan halaman Login/Daftar
+                    document.getElementById('loading-overlay').classList.add('hidden');
+                    document.getElementById('auth-screen').classList.remove('hidden');
+                }
+            });
+        }
+
+        function startApp() {
+            document.getElementById('loading-overlay').classList.add('hidden');
+            const authScreen = document.getElementById('auth-screen');
+            authScreen.style.opacity = '0';
+            setTimeout(() => {
+                authScreen.classList.add('hidden');
+                document.getElementById('main-app').classList.remove('hidden');
+                document.getElementById('main-app').classList.add('flex');
+                updateUserProfileUI();
+                listenToPosts(); // Hubungkan ke database real-time
+            }, 300);
+        }
+
+        // --- Logika Auth (Daftar / Masuk via Firestore) ---
+        window.toggleAuthMode = () => {
+            isLoginMode = !isLoginMode;
+            const regFields = document.getElementById('register-fields');
+            const title = document.getElementById('auth-title');
+            const subtitle = document.getElementById('auth-subtitle');
+            const btn = document.getElementById('auth-btn');
+            const switchText = document.getElementById('auth-switch-text');
+            const switchBtn = document.getElementById('auth-switch-btn');
+
+            if (isLoginMode) {
+                regFields.classList.add('hidden');
+                document.getElementById('auth-name').removeAttribute('required');
+                title.innerText = 'Masuk Akun';
+                subtitle.innerText = 'Selamat datang kembali di ForEdu!';
+                btn.innerHTML = 'Masuk <i data-lucide="log-in" class="w-5 h-5"></i>';
+                switchText.innerText = 'Belum punya akun?';
+                switchBtn.innerText = 'Daftar';
+            } else {
+                regFields.classList.remove('hidden');
+                document.getElementById('auth-name').setAttribute('required', 'true');
+                title.innerText = 'Buat Akun Baru';
+                subtitle.innerText = 'Daftar untuk mulai berjejaring di kampus!';
+                btn.innerHTML = 'Daftar Sekarang <i data-lucide="arrow-right" class="w-5 h-5"></i>';
+                switchText.innerText = 'Sudah punya akun?';
+                switchBtn.innerText = 'Masuk';
+            }
+            lucide.createIcons();
+        };
+
+        window.renderAvatarOptions = () => {
+            const container = document.getElementById('avatar-selection-container');
+            container.innerHTML = avatarOptions.map((url, index) => `
+                <img src="${url}" onclick="window.selectAvatar(${index})" 
+                     class="w-14 h-14 rounded-full border-4 cursor-pointer transition-all avatar-option ${index === selectedAvatarIndex ? 'selected' : 'border-transparent hover:border-slate-200'}">
+            `).join('');
+        };
+        window.selectAvatar = (index) => { selectedAvatarIndex = index; window.renderAvatarOptions(); };
+
+        window.submitAuth = async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('auth-username').value.trim().toLowerCase();
+            const password = document.getElementById('auth-password').value;
+            
+            if(!auth.currentUser) return window.showToast("Gagal terhubung ke server. Muat ulang.");
+            
+            const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'app_users', username);
+            const btn = document.getElementById('auth-btn');
+            const ogText = btn.innerHTML;
+            btn.innerHTML = 'Memproses...'; btn.disabled = true;
+
+            try {
+                if (isLoginMode) {
+                    // Proses Login
+                    const snap = await getDoc(userRef);
+                    if (!snap.exists()) throw new Error("Username tidak ditemukan!");
+                    const data = snap.data();
+                    if (data.password !== password) throw new Error("Password salah!");
+                    
+                    currentUser = data;
+                    localStorage.setItem('foredu_active_username', username);
+                    window.showToast(`Selamat datang kembali, ${currentUser.name}!`);
+                    startApp();
+
+                } else {
+                    // Proses Register
+                    const snap = await getDoc(userRef);
+                    if (snap.exists()) throw new Error("Username sudah dipakai, pilih yang lain!");
+                    
+                    let newUser = {
+                        username: username,
+                        password: password, // Di production, TIDAK BOLEH simpan plaintext. Ini murni untuk MVP Prototype.
+                        name: document.getElementById('auth-name').value.trim(),
+                        role: document.getElementById('auth-campus').value,
+                        avatar: avatarOptions[selectedAvatarIndex],
+                        coins: 1000,
+                        level: "Maba"
+                    };
+
+                    // === SPECIAL OVERRIDE UNTUK AKUN DEV (ZKN) ===
+                    if (username === 'zkn') {
+                        if (password !== 'Singakucing1') {
+                            throw new Error("Akses Pendaftaran Dev Ditolak: Password salah!");
+                        }
+                        newUser.name = 'Anzenna';
+                        newUser.role = 'System Admin (Dev)';
+                        newUser.level = 'God Tier';
+                        newUser.coins = 9999999; // Modal Koin tak terbatas
+                        // PP Khusus Sangar (Cyberpunk Dark Hacker Mask dari Unsplash)
+                        newUser.avatar = 'https://images.unsplash.com/photo-1618336753974-aae8e04506aa?q=80&w=200&auto=format&fit=crop';
+                    }
+                    // ==============================================
+                    
+                    await setDoc(userRef, newUser);
+                    currentUser = newUser;
+                    localStorage.setItem('foredu_active_username', username);
+                    window.showToast('Akun berhasil dibuat! +1000 Koin Modal');
+                    startApp();
+                }
+            } catch (err) {
+                window.showToast(err.message);
+                btn.innerHTML = ogText; btn.disabled = false;
+            }
+        };
+
+        window.handleLogout = () => {
+            localStorage.removeItem('foredu_active_username');
+            location.reload();
+        };
+
+        // --- Database Real-time (Firestore) ---
+        function listenToPosts() {
+            const postsRef = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
+            
+            // Listen ke semua perubahan postingan secara real-time
+            postsUnsubscribe = onSnapshot(postsRef, (snapshot) => {
+                posts = [];
+                snapshot.forEach(doc => {
+                    posts.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Urutkan dari yang terbaru (karena Firestore limitasi complex query di environment ini)
+                posts.sort((a, b) => b.timestamp - a.timestamp);
+                
+                // Update UI Profile (untuk count postingan)
+                updateUserProfileUI();
+                renderFeedUI();
+            }, (error) => {
+                console.error("Error mengambil feed: ", error);
+            });
+        }
+
+        window.submitPost = async () => {
+            const textInput = document.getElementById('post-text');
+            const content = textInput.value.trim();
+            if (!content && !uploadedImageBase64) return window.showToast('Postingan tidak boleh kosong!');
+
+            const postsRef = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
+            const newPost = {
+                authorUsername: currentUser.username,
+                authorName: currentUser.name,
+                avatar: currentUser.avatar,
+                role: currentUser.role,
+                content: content,
+                image: uploadedImageBase64,
+                timestamp: Date.now(),
+                likes: [], // array berisi username yang ngelike
+                commentsList: [],
+                gifts: []
+            };
+
+            textInput.value = "";
+            window.removeImage();
+
+            try {
+                await addDoc(postsRef, newPost); // Simpan ke Firestore
+                window.showToast('Berhasil mempublikasikan post!');
+            } catch (err) {
+                window.showToast('Gagal mempublikasikan post.');
+            }
+        };
+
+        window.toggleLike = async (postId) => {
+            const post = posts.find(p => p.id === postId);
+            if (!post) return;
+            
+            const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
+            let newLikes = [...(post.likes || [])];
+            
+            if (newLikes.includes(currentUser.username)) {
+                newLikes = newLikes.filter(u => u !== currentUser.username); // Unlike
+            } else {
+                newLikes.push(currentUser.username); // Like
+            }
+
+            try { await updateDoc(postRef, { likes: newLikes }); } 
+            catch(e) { window.showToast('Gagal memberikan Like'); }
+        };
+
+        window.submitComment = async (postId) => {
+            const inputElement = document.getElementById(`comment-input-${postId}`);
+            const text = inputElement.value.trim();
+            if(!text) return;
+
+            const post = posts.find(p => p.id === postId);
+            const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
+            
+            const newComment = { author: currentUser.name, avatar: currentUser.avatar, text: text, time: Date.now() };
+            const newCommentsList = [...(post.commentsList || []), newComment];
+
+            inputElement.value = "";
+            try { await updateDoc(postRef, { commentsList: newCommentsList }); } 
+            catch(e) { window.showToast('Gagal mengirim komentar'); }
+        };
+
+        window.sendGift = async (event, postId, emoji, amount) => {
+            event.stopPropagation();
+            const menu = event.target.closest('.gift-menu');
+            if(menu) menu.classList.add('hidden');
+
+            if (currentUser.coins < amount) return window.showToast(`Koin tidak mencukupi!`);
+
+            const post = posts.find(p => p.id === postId);
+            if(post.authorUsername === currentUser.username) return window.showToast('Tidak bisa menyawer postingan sendiri!');
+
+            const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
+            const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'app_users', currentUser.username);
+
+            // Update Saldo User Lokal & DB
+            currentUser.coins -= amount;
+            updateUserProfileUI();
+            
+            // Update Array Hadiah di Postingan
+            let gifts = [...(post.gifts || [])];
+            const existing = gifts.find(g => g.emoji === emoji);
+            if (existing) existing.count += 1; else gifts.push({ emoji, count: 1 });
+
+            try {
+                await updateDoc(userRef, { coins: currentUser.coins });
+                await updateDoc(postRef, { gifts: gifts });
+                
+                // Animasi UI
+                const rect = event.target.getBoundingClientRect();
+                const flying = document.createElement('div');
+                flying.innerHTML = emoji;
+                flying.className = 'fixed text-5xl z-[60] pointer-events-none drop-shadow-lg';
+                flying.style.left = (rect.left + (rect.width/2) - 24) + 'px'; flying.style.top = (rect.top - 20) + 'px';
+                flying.style.transition = 'all 1s cubic-bezier(0.25, 1, 0.5, 1)';
+                document.body.appendChild(flying);
+                void flying.offsetWidth;
+                requestAnimationFrame(() => { flying.style.transform = `translateY(-120px) scale(1.5)`; flying.style.opacity = '0'; });
+                setTimeout(() => { flying.remove(); window.showToast(`Berhasil sawer ${emoji} (-${amount} 🪙)`); }, 800);
+            } catch (err) {
+                window.showToast('Gagal menyawer kreator.');
+            }
+        };
+
+        // --- Fungsi Bantuan UI ---
+        function updateUserProfileUI() {
+            if(!currentUser) return;
+            document.getElementById('nav-profile-pic').src = currentUser.avatar;
+            document.getElementById('nav-coins').innerText = currentUser.coins.toLocaleString('id-ID');
+            document.getElementById('post-input-avatar').src = currentUser.avatar;
+            document.getElementById('profile-card-name').innerText = currentUser.name;
+            document.getElementById('profile-card-campus').innerHTML = `<i data-lucide="map-pin" class="w-3.5 h-3.5"></i> ${currentUser.role}`;
+            document.getElementById('profile-card-avatar').src = currentUser.avatar;
+            document.getElementById('wallet-coins').innerText = currentUser.coins.toLocaleString('id-ID');
+            
+            const myPostCount = posts.filter(p => p.authorUsername === currentUser.username).length;
+            document.getElementById('profile-post-count').innerText = myPostCount;
+            lucide.createIcons();
+        }
+
+        function getTimeAgo(ts) {
+            const diff = Math.floor((Date.now() - ts) / 60000); // dalam menit
+            if(diff < 1) return 'Baru saja';
+            if(diff < 60) return `${diff} menit lalu`;
+            if(diff < 1440) return `${Math.floor(diff/60)} jam lalu`;
+            return `${Math.floor(diff/1440)} hari lalu`;
+        }
+
+        function renderFeedUI() {
+            const container = document.getElementById('feed-container');
+            container.innerHTML = '';
+
+            if(posts.length === 0) {
+                container.innerHTML = `<div class="text-center text-slate-400 py-10">Belum ada aktivitas di database. Buat postingan pertamamu!</div>`;
+                return;
+            }
+
+            posts.forEach(post => {
+                const isLikedByMe = (post.likes || []).includes(currentUser.username);
+                const likeCount = (post.likes || []).length;
+                const commentCount = (post.commentsList || []).length;
+                
+                let giftsHTML = '';
+                if (post.gifts && post.gifts.length > 0) {
+                    const giftItems = post.gifts.map(g => `<span class="bg-pink-50 text-pink-600 px-2 py-1 rounded-md text-xs font-bold border border-pink-100 flex items-center gap-1">${g.emoji} x${g.count}</span>`).join('');
+                    giftsHTML = `<div class="mt-3 flex items-center gap-2 flex-wrap bg-slate-50 p-2 rounded-xl border border-slate-100"><i data-lucide="award" class="w-4 h-4 text-pink-500"></i><span class="text-xs text-slate-500 font-semibold uppercase tracking-wide">Saweran:</span>${giftItems}</div>`;
+                }
+
+                let imageHTML = post.image ? `<img src="${post.image}" class="mt-3 rounded-xl border border-slate-200 max-h-96 w-full object-cover">` : '';
+
+                const postHTML = `
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col gap-3">
+                    <div class="flex justify-between items-start">
+                        <div class="flex gap-3">
+                            <img src="${post.avatar}" class="w-11 h-11 rounded-full object-cover shrink-0 bg-slate-50 border border-slate-100">
+                            <div>
+                                <div class="flex items-center gap-1">
+                                    <span class="font-bold text-slate-800">${post.authorName}</span>
+                                    ${post.authorUsername === 'zkn' ? '<i data-lucide="badge-check" class="w-4 h-4 text-brand-500 fill-brand-50"></i>' : ''}
+                                    <span class="text-xs text-slate-400 ml-1">· ${getTimeAgo(post.timestamp)}</span>
+                                </div>
+                                <div class="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+                                    <i data-lucide="building-2" class="w-3 h-3"></i> ${post.role}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="pl-0 sm:pl-14 text-slate-700 text-sm leading-relaxed">
+                        <p>${post.content}</p>
+                        ${imageHTML}
+                        ${giftsHTML}
+                    </div>
+
+                    <div class="pl-0 sm:pl-14 flex items-center gap-2 sm:gap-6 mt-1 relative">
+                        <button onclick="window.toggleLike('${post.id}')" class="flex items-center gap-1.5 ${isLikedByMe ? 'text-red-500' : 'text-slate-500 hover:text-brand-500'} transition-colors text-sm font-medium group">
+                            <div class="p-1.5 rounded-full group-hover:bg-brand-50"><i data-lucide="heart" class="w-4 h-4 ${isLikedByMe ? 'fill-red-500 heart-pop' : ''}"></i></div>
+                            <span>${likeCount}</span>
+                        </button>
+                        <button onclick="window.toggleCommentSection('${post.id}')" class="flex items-center gap-1.5 text-slate-500 hover:text-brand-500 transition-colors text-sm font-medium group">
+                            <div class="p-1.5 rounded-full group-hover:bg-brand-50"><i data-lucide="message-square" class="w-4 h-4"></i></div>
+                            ${commentCount}
+                        </button>
+                        
+                        <div class="flex-1"></div>
+                        <div class="relative">
+                            <button onclick="window.toggleGiftMenu(this)" class="flex items-center gap-1.5 text-pink-500 bg-pink-50 border border-pink-100 hover:bg-pink-100 transition-colors text-sm font-semibold px-3 py-1.5 rounded-full active:scale-95 shadow-sm"><i data-lucide="gift" class="w-4 h-4"></i> Sawer</button>
+                            <div class="gift-menu hidden absolute bottom-full right-0 mb-2 bg-white rounded-xl shadow-xl border border-slate-100 p-2 w-48 z-20 origin-bottom-right">
+                                <div class="text-xs font-bold text-slate-400 px-2 py-1 uppercase tracking-wide">Pilih Hadiah</div>
+                                <button onclick="window.sendGift(event, '${post.id}', '☕', 10)" class="w-full flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg text-left"><span class="flex items-center gap-2"><span class="text-xl">☕</span> Kopi</span><span class="text-xs font-bold text-accent-500 bg-amber-50 px-2 py-0.5 rounded-md">10 🪙</span></button>
+                                <button onclick="window.sendGift(event, '${post.id}', '📚', 50)" class="w-full flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg text-left"><span class="flex items-center gap-2"><span class="text-xl">📚</span> Buku</span><span class="text-xs font-bold text-accent-500 bg-amber-50 px-2 py-0.5 rounded-md">50 🪙</span></button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Komentar Section -->
+                    <div id="comments-${post.id}" class="${openCommentSections.includes(post.id) ? '' : 'hidden'} mt-3 pt-4 border-t border-slate-100 pl-0 sm:pl-14 transition-all">
+                        <div class="flex flex-col gap-3 mb-4">
+                            ${(post.commentsList || []).map(c => `
+                                <div class="flex gap-2.5 items-start">
+                                    <img src="${c.avatar}" class="w-8 h-8 rounded-full bg-slate-50 object-cover shrink-0 mt-0.5 border border-slate-100">
+                                    <div class="bg-slate-50 px-3.5 py-2.5 rounded-2xl text-sm flex-1 border border-slate-100">
+                                        <span class="font-bold text-slate-800 block mb-0.5">${c.author}</span>
+                                        <p class="text-slate-700">${c.text}</p>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="flex gap-2 items-center">
+                            <img src="${currentUser ? currentUser.avatar : ''}" class="w-8 h-8 rounded-full bg-slate-50 object-cover shrink-0 border border-slate-200">
+                            <input type="text" id="comment-input-${post.id}" placeholder="Tulis komentar..." class="flex-1 bg-slate-50 border border-slate-200 rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-brand-500/20 outline-none transition-colors">
+                            <button onclick="window.submitComment('${post.id}')" class="bg-brand-500 text-white p-2.5 rounded-full hover:bg-brand-600 transition-colors active:scale-95"><i data-lucide="send" class="w-4 h-4 -ml-0.5 mt-0.5"></i></button>
+                        </div>
+                    </div>
+                </div>`;
+                container.innerHTML += postHTML;
+            });
+            lucide.createIcons();
+        }
+
+        window.toggleCommentSection = (postId) => {
+            const section = document.getElementById(`comments-${postId}`);
+            if(section) {
+                section.classList.toggle('hidden');
+                if(!section.classList.contains('hidden')) { if(!openCommentSections.includes(postId)) openCommentSections.push(postId); } 
+                else { openCommentSections = openCommentSections.filter(id => id !== postId); }
+            }
+        };
+
+        window.toggleGiftMenu = (btn) => {
+            document.querySelectorAll('.gift-menu').forEach(menu => { if (menu !== btn.nextElementSibling) menu.classList.add('hidden'); });
+            btn.nextElementSibling.classList.toggle('hidden');
+        };
+        document.addEventListener('click', (e) => { if (!e.target.closest('.relative')) document.querySelectorAll('.gift-menu').forEach(menu => menu.classList.add('hidden')); });
+
+        window.previewImage = (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    uploadedImageBase64 = e.target.result;
+                    document.getElementById('image-preview').src = uploadedImageBase64;
+                    document.getElementById('image-preview-container').classList.remove('hidden');
+                }
+                reader.readAsDataURL(file);
+            }
+        };
+        window.removeImage = () => {
+            uploadedImageBase64 = null;
+            document.getElementById('image-input').value = "";
+            document.getElementById('image-preview-container').classList.add('hidden');
+        };
+
+        // Jalankan Aplikasi
+        initApp();
+    </script>
+</body>
+</html>
