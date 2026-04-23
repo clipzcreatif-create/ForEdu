@@ -612,7 +612,7 @@
             reader.onload = async function(e) {
                 const newAvatarBase64 = e.target.result;
                 try {
-                    const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', currentUser.username);
+                    const userRef = doc(db, rootDbId, 'public', 'users', currentUser.username);
                     await updateDoc(userRef, { avatar: newAvatarBase64 });
                     window.showToast("Foto profil berhasil diperbarui!");
                 } catch (err) {
@@ -628,7 +628,7 @@
             if(!currentUser) return;
             const newCampus = prompt("Ubah Nama Kampus Anda:", currentUser.role);
             if(newCampus && newCampus.trim() !== "" && newCampus.trim() !== currentUser.role) {
-                const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', currentUser.username);
+                const userRef = doc(db, rootDbId, 'public', 'users', currentUser.username);
                 try {
                     await updateDoc(userRef, { role: newCampus.trim() });
                     window.showToast("Kampus berhasil diperbarui!");
@@ -1306,7 +1306,7 @@
             const post = posts.find(p => p.id === postId);
             if(!post) return;
             
-            const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
+            const postRef = doc(db, rootDbId, 'public', 'posts', postId);
             
             const newComment = { 
                 id: 'c_' + Date.now() + Math.random().toString(36).substr(2, 5),
@@ -1345,7 +1345,7 @@
             const post = posts.find(p => p.id === postId);
             if (!post) return;
             
-            const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
+            const postRef = doc(db, rootDbId, 'public', 'posts', postId);
             const newCommentsList = [...(post.commentsList || [])];
             const commentIndex = newCommentsList.findIndex(c => c.id === commentId);
             
@@ -1374,7 +1374,7 @@
         window.toggleCommentLike = async (postId, commentId) => {
             const post = posts.find(p => p.id === postId);
             if (!post) return;
-            const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
+            const postRef = doc(db, rootDbId, 'public', 'posts', postId);
             const newCommentsList = [...(post.commentsList || [])];
             const commentIndex = newCommentsList.findIndex(c => c.id === commentId);
             
@@ -1393,7 +1393,7 @@
         window.toggleReplyLike = async (postId, commentId, replyId) => {
             const post = posts.find(p => p.id === postId);
             if (!post) return;
-            const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
+            const postRef = doc(db, rootDbId, 'public', 'posts', postId);
             const newCommentsList = [...(post.commentsList || [])];
             const commentIndex = newCommentsList.findIndex(c => c.id === commentId);
             
@@ -1423,9 +1423,9 @@
             const post = posts.find(p => p.id === postId);
             if(post.authorUsername === currentUser.username) return window.showToast('Dilarang menyawer postingan sendiri!');
 
-            const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
-            const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', currentUser.username);
-            const creatorRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', post.authorUsername);
+            const postRef = doc(db, rootDbId, 'public', 'posts', postId);
+            const userRef = doc(db, rootDbId, 'public', 'users', currentUser.username);
+            const creatorRef = doc(db, rootDbId, 'public', 'users', post.authorUsername);
 
             try {
                 let gifts = [...(post.gifts || [])];
@@ -1613,6 +1613,7 @@
                         <div class="relative">
                             <button onclick="window.toggleGiftMenu(this)" class="bg-pink-50 text-pink-600 px-3 py-1.5 rounded-full text-xs font-bold border border-pink-100 flex items-center gap-1 active:scale-95 transition-all"><i data-lucide="gift" class="w-3.5 h-3.5"></i> Sawer</button>
                             <div class="gift-menu hidden absolute bottom-full right-0 mb-2 bg-white rounded-xl shadow-xl border p-2 w-48 z-10">
+                                <div class="text-xs font-bold text-slate-400 px-2 py-1 uppercase tracking-wide">Pilih Hadiah</div>
                                 <button onclick="window.sendGift(event, '${post.id}', '☕', 10)" class="w-full flex justify-between p-2 hover:bg-slate-50 rounded-lg text-xs"><span>☕ Kopi</span><b>10 🪙</b></button>
                                 <button onclick="window.sendGift(event, '${post.id}', '🍕', 100)" class="w-full flex justify-between p-2 hover:bg-slate-50 rounded-lg text-xs"><span>🍕 Pizza</span><b>100 🪙</b></button>
                                 <button onclick="window.sendGift(event, '${post.id}', '💎', 1000)" class="w-full flex justify-between p-2 hover:bg-slate-50 rounded-lg text-xs"><span>💎 Sultan</span><b>1k 🪙</b></button>
