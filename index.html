@@ -39,7 +39,6 @@
         @keyframes heartPop { 0% { transform: scale(1); } 50% { transform: scale(1.35); } 100% { transform: scale(1); } }
         .heart-pop { animation: heartPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         
-        /* Custom Scrollbar for Chat & Feed */
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -84,16 +83,52 @@
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-1">Kampus</label>
                         <select id="auth-campus" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-500/50 outline-none transition-all appearance-none cursor-pointer">
-                            <option value="Binus Malang">Binus University (Malang)</option>
-                            <option value="Binus Kemanggisan">Binus University (Kemanggisan)</option>
-                            <option value="Binus Alam Sutera">Binus University (Alam Sutera)</option>
-                            <option value="Binus Bandung">Binus University (Bandung)</option>
-                            <option value="Universitas Indonesia">Universitas Indonesia</option>
+                            <optgroup label="Kampus Utama Malang">
+                                <option value="Binus Malang">Binus University (Malang)</option>
+                                <option value="Universitas Brawijaya">Universitas Brawijaya (UB)</option>
+                                <option value="Universitas Negeri Malang">Universitas Negeri Malang (UM)</option>
+                                <option value="UIN Malang">UIN Maulana Malik Ibrahim</option>
+                                <option value="Politeknik Negeri Malang">Politeknik Negeri Malang (POLINEMA)</option>
+                            </optgroup>
+                            <optgroup label="Kampus Swasta Malang">
+                                <option value="Universitas Muhammadiyah Malang">Universitas Muhammadiyah Malang (UMM)</option>
+                                <option value="Universitas Islam Malang">Universitas Islam Malang (UNISMA)</option>
+                                <option value="Universitas Merdeka Malang">Universitas Merdeka Malang (UNMER)</option>
+                                <option value="ITN Malang">Institut Teknologi Nasional (ITN) Malang</option>
+                                <option value="Universitas PGRI Kanjuruhan">Universitas PGRI Kanjuruhan (UNIKAMA)</option>
+                                <option value="Universitas Tribhuwana Tunggadewi">Universitas Tribhuwana Tunggadewi (UNITRI)</option>
+                                <option value="Universitas Ma Chung">Universitas Ma Chung</option>
+                                <option value="Universitas Widyagama">Universitas Widyagama</option>
+                                <option value="STIE Malangkucecwara">STIE Malangkucecwara (ABM)</option>
+                            </optgroup>
+                            <optgroup label="Luar Malang">
+                                <option value="Binus Kemanggisan">Binus University (Kemanggisan)</option>
+                                <option value="Binus Alam Sutera">Binus University (Alam Sutera)</option>
+                                <option value="Binus Bandung">Binus University (Bandung)</option>
+                                <option value="Universitas Indonesia">Universitas Indonesia</option>
+                            </optgroup>
                         </select>
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">Pilih Karaktermu</label>
                         <div class="flex justify-between gap-2" id="avatar-selection-container"></div>
+                        
+                        <div class="mt-3 flex items-center gap-3">
+                            <div class="h-px bg-slate-200 flex-1"></div>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase">ATAU</span>
+                            <div class="h-px bg-slate-200 flex-1"></div>
+                        </div>
+                        
+                        <div class="mt-3 flex items-center justify-center gap-3">
+                            <input type="file" id="auth-avatar-upload" accept="image/*" class="hidden" onchange="window.previewAvatarUpload(event)">
+                            <button type="button" onclick="document.getElementById('auth-avatar-upload').click()" class="flex items-center gap-2 text-xs font-bold text-brand-600 bg-brand-50 hover:bg-brand-100 px-4 py-2 rounded-full transition-colors border border-brand-200">
+                                <i data-lucide="camera" class="w-4 h-4"></i> Unggah Foto Sendiri
+                            </button>
+                            <div id="custom-avatar-preview-container" class="hidden relative">
+                                <img id="custom-avatar-preview" src="" class="w-10 h-10 rounded-full object-cover border-2 border-brand-500 shadow-sm">
+                                <button type="button" onclick="window.removeAvatarUpload()" class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 shadow-md"><i data-lucide="x" class="w-3 h-3"></i></button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -114,7 +149,7 @@
     <!-- ================= LOADING OVERLAY ================= -->
     <div id="loading-overlay" class="fixed inset-0 z-[200] bg-white flex flex-col justify-center items-center transition-opacity duration-300">
         <div class="w-12 h-12 border-4 border-brand-200 border-t-brand-500 rounded-full animate-spin"></div>
-        <p class="mt-4 text-brand-500 font-bold animate-pulse">Menghubungkan ke Database...</p>
+        <p class="mt-4 text-brand-500 font-bold animate-pulse text-sm">Menghubungkan Database...</p>
     </div>
 
     <!-- ================= SIDEBAR CONNECTIONS (KONEKSI) ================= -->
@@ -125,65 +160,80 @@
         <!-- Header -->
         <div class="h-16 border-b border-slate-100 flex items-center justify-between px-5 bg-brand-50 shrink-0">
             <h2 id="sidebar-title" class="font-bold text-brand-600 flex items-center gap-2 text-lg">
-                <i data-lucide="users" class="w-5 h-5"></i> Koneksi Teman
+                <i data-lucide="users" class="w-5 h-5"></i> Koneksi
             </h2>
             <button onclick="window.toggleSidebar()" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 rounded-full transition-colors">
                 <i data-lucide="x" class="w-5 h-5"></i>
             </button>
         </div>
 
-        <!-- TABS NAVIGASI (Hanya tampil di mode list) -->
+        <!-- TABS NAVIGASI -->
         <div id="sidebar-tabs" class="flex border-b border-slate-100 shrink-0 bg-white">
-            <button id="tab-obrolan" onclick="window.switchSidebarTab('obrolan')" class="flex-1 py-3 text-sm font-bold text-brand-500 border-b-2 border-brand-500 transition-colors">Obrolan</button>
-            <button id="tab-cari" onclick="window.switchSidebarTab('cari')" class="flex-1 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent transition-colors">Cari Teman</button>
+            <button id="tab-obrolan" onclick="window.switchSidebarTab('obrolan')" class="relative flex-1 py-3 text-[10px] font-bold transition-all uppercase tracking-tighter text-brand-500 border-b-2 border-brand-500">
+                Chat <span id="badge-chat" class="hidden absolute top-2 right-4 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+            </button>
+            <button id="tab-cari" onclick="window.switchSidebarTab('cari')" class="flex-1 py-3 text-[10px] font-bold transition-all uppercase tracking-tighter text-slate-400 border-b-2 border-transparent hover:text-slate-600">Cari Teman</button>
+            <button id="tab-notif" onclick="window.switchSidebarTab('notif')" class="relative flex-1 py-3 text-[10px] font-bold transition-all uppercase tracking-tighter text-slate-400 border-b-2 border-transparent hover:text-slate-600">
+                Notif <span id="badge-notif" class="hidden absolute top-2 right-4 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+            </button>
         </div>
 
-        <!-- VIEW 1: Obrolan (Teman yang di-follow) -->
-        <div id="view-obrolan" class="flex-1 overflow-y-auto p-3 flex flex-col gap-1 bg-white">
-            <div class="text-center py-10 text-slate-400 text-sm animate-pulse">Memuat obrolan...</div>
-        </div>
-
-        <!-- VIEW 2: Cari Teman & Rekomendasi -->
+        <!-- VIEWS -->
+        <div id="view-obrolan" class="flex-1 overflow-y-auto p-3 flex flex-col gap-1 bg-white"></div>
+        
         <div id="view-cari" class="hidden flex-1 flex-col overflow-hidden bg-white">
-            <div class="p-4 border-b border-slate-50 shadow-sm z-10">
-                <div class="relative">
-                    <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-                    <input type="text" id="search-friend" onkeyup="window.handleSearchFriend()" placeholder="Ketik username teman..." class="w-full pl-10 pr-4 py-2.5 bg-slate-100 border-none rounded-xl text-sm focus:ring-2 focus:ring-brand-500/30 outline-none transition-all">
-                </div>
+            <div class="p-4 border-b border-slate-50">
+                <input type="text" id="search-friend" onkeyup="window.handleSearchFriend()" placeholder="Cari username teman..." class="w-full pl-4 pr-4 py-2 bg-slate-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand-500/30">
             </div>
-            <div class="px-4 pt-3 pb-1 text-xs font-bold text-slate-400 uppercase tracking-wider">Rekomendasi Mahasiswa</div>
-            <div id="list-cari" class="flex-1 overflow-y-auto px-3 pb-3 flex flex-col gap-1">
-                <div class="text-center py-10 text-slate-400 text-sm animate-pulse">Memuat rekomendasi...</div>
-            </div>
+            <div id="list-cari" class="flex-1 overflow-y-auto p-3 flex flex-col gap-1"></div>
         </div>
 
-        <!-- VIEW 3: Ruang Obrolan Aktif (Chat) -->
-        <div id="sidebar-chat-view" class="hidden flex-1 flex-col overflow-hidden relative bg-slate-50">
+        <div id="view-notif" class="hidden flex-1 overflow-y-auto p-3 flex flex-col gap-2 bg-slate-50"></div>
+
+        <!-- CHAT VIEW -->
+        <div id="sidebar-chat-view" class="hidden flex-1 flex-col overflow-hidden bg-slate-50 relative">
             <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-3" id="chat-messages-container"></div>
-            
             <div class="p-3 border-t border-slate-200 bg-white flex flex-col gap-2 shrink-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+                <!-- Preview Gambar/File/Audio Chat -->
                 <div id="chat-image-preview-container" class="hidden relative w-max mb-1">
                     <img id="chat-image-preview" class="h-16 rounded-lg object-cover border border-slate-200 shadow-sm">
                     <button onclick="window.removeChatImage()" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600"><i data-lucide="x" class="w-3 h-3"></i></button>
                 </div>
+                <div id="chat-file-preview-container" class="hidden relative w-full mb-1 p-2 bg-slate-100 rounded-lg flex items-center gap-2 border shadow-sm">
+                    <i data-lucide="file-text" class="w-5 h-5 text-brand-500 shrink-0"></i>
+                    <span id="chat-file-preview-name" class="text-xs font-semibold text-slate-700 truncate flex-1"></span>
+                    <button onclick="window.removeChatFile()" class="bg-red-500 text-white rounded-full p-1 shadow-md shrink-0"><i data-lucide="x" class="w-3 h-3"></i></button>
+                </div>
+                <div id="chat-audio-preview-container" class="hidden relative w-full mb-1 p-2 bg-slate-100 rounded-lg flex items-center gap-2 border shadow-sm">
+                    <i data-lucide="mic" class="w-5 h-5 text-brand-500 shrink-0"></i>
+                    <audio id="chat-audio-preview" controls class="h-8 flex-1"></audio>
+                    <button onclick="window.removeChatAudio()" class="bg-red-500 text-white rounded-full p-1 shadow-md shrink-0"><i data-lucide="x" class="w-3 h-3"></i></button>
+                </div>
+
                 <div class="flex items-center gap-2">
                     <input type="file" id="chat-image-input" accept="image/*" class="hidden" onchange="window.previewChatImage(event)">
-                    <button onclick="document.getElementById('chat-image-input').click()" class="p-2 text-slate-400 hover:text-brand-500 hover:bg-brand-50 rounded-full transition-colors"><i data-lucide="image" class="w-5 h-5"></i></button>
+                    <button onclick="document.getElementById('chat-image-input').click()" class="p-2 text-slate-400 hover:text-brand-500 hover:bg-brand-50 rounded-full transition-colors" title="Kirim Gambar"><i data-lucide="image" class="w-5 h-5"></i></button>
+                    
+                    <input type="file" id="chat-file-input" accept=".pdf,.doc,.docx,.txt" class="hidden" onchange="window.previewChatFile(event)">
+                    <button onclick="document.getElementById('chat-file-input').click()" class="p-2 text-slate-400 hover:text-brand-500 hover:bg-brand-50 rounded-full transition-colors" title="Kirim Dokumen"><i data-lucide="paperclip" class="w-5 h-5"></i></button>
+
+                    <button onclick="window.toggleChatAudioRecording()" id="btn-record-chat-audio" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors" title="Voice Note (VN)"><i data-lucide="mic" class="w-5 h-5"></i></button>
+
                     <input type="text" id="chat-input" placeholder="Tulis pesan..." class="flex-1 bg-slate-50 border border-slate-200 rounded-full px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-500/20 transition-all" onkeypress="if(event.key === 'Enter') window.sendChatMessage()">
                     <button onclick="window.sendChatMessage()" class="bg-brand-500 text-white p-2.5 rounded-full hover:bg-brand-600 transition-colors shadow-sm active:scale-95"><i data-lucide="send" class="w-4 h-4 ml-0.5 mt-0.5"></i></button>
                 </div>
             </div>
         </div>
     </div>
-    <!-- ================================================================= -->
 
     <!-- ================= MAIN APP WRAPPER ================= -->
     <div id="main-app" class="hidden flex-col min-h-screen">
         <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                 <div class="flex items-center gap-4 sm:gap-8">
-                    <button onclick="window.toggleSidebar()" class="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500/30">
+                    <button onclick="window.toggleSidebar()" class="relative p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500/30">
                         <i data-lucide="menu" class="w-6 h-6"></i>
+                        <span id="global-badge" class="hidden absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
                     </button>
                     <a href="#" class="flex items-center gap-2">
                         <div class="bg-brand-500 text-white p-1.5 rounded-lg hidden sm:block"><i data-lucide="graduation-cap" class="w-6 h-6"></i></div>
@@ -202,6 +252,10 @@
                     </nav>
                 </div>
                 <div class="flex items-center gap-3 sm:gap-4">
+                    <button onclick="window.toggleSidebar(); window.switchSidebarTab('notif')" class="relative p-2 text-slate-600 hover:bg-slate-100 rounded-full transition-colors hidden sm:block" title="Notifikasi">
+                        <i data-lucide="bell" class="w-5 h-5"></i>
+                        <span id="header-notif-badge" class="hidden absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                    </button>
                     <div class="flex items-center gap-1.5 bg-amber-50 text-accent-600 px-3 py-1.5 rounded-full border border-amber-200 shadow-sm cursor-pointer hover:bg-amber-100 transition-colors" title="Saldo Koin Edu">
                         <i data-lucide="coins" class="w-4 h-4 fill-accent-500"></i>
                         <span id="nav-coins" class="font-bold text-sm">0</span>
@@ -226,14 +280,32 @@
                         <img id="post-input-avatar" src="" alt="Profile" class="w-10 h-10 rounded-full object-cover shrink-0 bg-slate-100 border border-slate-200">
                         <textarea id="post-text" placeholder="Ada info penting apa di kampus hari ini?" rows="2" class="w-full bg-slate-50 border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-brand-500/20 outline-none resize-none"></textarea>
                     </div>
+                    
+                    <!-- Previews -->
                     <div id="image-preview-container" class="hidden pl-13 relative w-max mt-2">
                         <img id="image-preview" class="h-32 rounded-xl object-cover border border-slate-200 shadow-sm">
                         <button onclick="window.removeImage()" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow-md"><i data-lucide="x" class="w-4 h-4"></i></button>
                     </div>
+                    <div id="file-preview-container" class="hidden ml-13 relative w-max mt-2 bg-slate-50 p-3 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+                        <div class="bg-brand-100 p-2 rounded-lg"><i data-lucide="file-text" class="w-5 h-5 text-brand-600"></i></div>
+                        <span id="file-preview-name" class="text-sm font-semibold text-slate-700 truncate max-w-[200px]"></span>
+                        <button onclick="window.removeFile()" class="bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow-md ml-2"><i data-lucide="x" class="w-3 h-3"></i></button>
+                    </div>
+                    <div id="audio-preview-container" class="hidden ml-13 relative w-full mt-2 bg-slate-50 p-2 rounded-xl border border-slate-200 shadow-sm flex items-center gap-2">
+                        <i data-lucide="mic" class="w-5 h-5 text-brand-500 shrink-0"></i>
+                        <audio id="audio-preview" controls class="h-8 flex-1"></audio>
+                        <button onclick="window.removeAudio()" class="bg-red-500 text-white rounded-full p-1 shadow-md shrink-0"><i data-lucide="x" class="w-3 h-3"></i></button>
+                    </div>
+
                     <div class="flex items-center justify-between pl-12 sm:pl-13">
                         <div class="flex gap-2">
                             <input type="file" id="image-input" accept="image/*" class="hidden" onchange="window.previewImage(event)">
-                            <button onclick="document.getElementById('image-input').click()" class="p-2 text-slate-400 hover:text-brand-500 hover:bg-brand-50 rounded-full transition-colors"><i data-lucide="image" class="w-5 h-5"></i></button>
+                            <button onclick="document.getElementById('image-input').click()" class="p-2 text-slate-400 hover:text-brand-500 hover:bg-brand-50 rounded-full transition-colors" title="Unggah Gambar"><i data-lucide="image" class="w-5 h-5"></i></button>
+                            
+                            <input type="file" id="file-input" accept=".pdf,.doc,.docx,.txt" class="hidden" onchange="window.previewFile(event)">
+                            <button onclick="document.getElementById('file-input').click()" class="p-2 text-slate-400 hover:text-brand-500 hover:bg-brand-50 rounded-full transition-colors" title="Lampirkan Dokumen"><i data-lucide="paperclip" class="w-5 h-5"></i></button>
+
+                            <button onclick="window.togglePostAudioRecording()" id="btn-post-record-audio" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors" title="Voice Note (VN)"><i data-lucide="mic" class="w-5 h-5"></i></button>
                         </div>
                         <button onclick="window.submitPost()" class="bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold py-2 px-5 rounded-full shadow-sm shadow-brand-500/20 transition-all active:scale-95">Kirim Post</button>
                     </div>
@@ -251,7 +323,13 @@
             <div class="w-full lg:w-1/3 flex flex-col gap-6">
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden relative">
                     <div class="bg-brand-500 h-24 relative"></div>
-                    <img id="profile-card-avatar" src="" alt="My Profile" class="absolute top-12 left-6 w-20 h-20 rounded-full border-4 border-white shadow-sm object-cover bg-white">
+                    <div class="absolute top-12 left-6 w-20 h-20 z-10 group">
+                        <img id="profile-card-avatar" src="" alt="My Profile" class="w-full h-full rounded-full border-4 border-white shadow-sm object-cover bg-white">
+                        <button onclick="document.getElementById('profile-avatar-update').click()" class="absolute bottom-0 right-0 bg-brand-500 text-white rounded-full p-1.5 shadow-md hover:bg-brand-600 border-2 border-white transition-all cursor-pointer" title="Ganti Foto Profil">
+                            <i data-lucide="camera" class="w-3 h-3"></i>
+                        </button>
+                        <input type="file" id="profile-avatar-update" accept="image/*" class="hidden" onchange="window.updateProfileAvatar(event)">
+                    </div>
                     <div class="absolute top-0 right-6 bg-brand-600 text-white rounded-b-2xl px-3 py-4 shadow-md flex flex-col items-center">
                         <span class="text-[9px] font-bold uppercase tracking-wider mb-1 opacity-90">Level</span>
                         <span id="profile-card-level" class="text-sm font-black">Maba</span>
@@ -294,7 +372,7 @@
         </main>
     </div>
 
-    <div id="toast-container" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-2 pointer-events-none"></div>
+    <div id="toast-container" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[500] flex flex-col gap-2 pointer-events-none"></div>
 
     <!-- ================= JAVASCRIPT & FIREBASE INTEGRATION ================= -->
     <script type="module">
@@ -320,7 +398,14 @@
         let currentUser = null;
         let isLoginMode = false;
         let posts = [];
+        
         let uploadedImageBase64 = null;
+        let uploadedFile = null; // { name: string, url: base64 }
+        let uploadedAudioBase64 = null; // Post VN
+        let isPostRecording = false;
+        let postMediaRecorder = null;
+        let postAudioChunks = [];
+        
         let openCommentSections = [];
         let postsUnsubscribe = null;
         let userUnsubscribe = null;
@@ -329,8 +414,23 @@
         let allUsers = [];
         let activeChatUser = null;
         let chatUnsubscribe = null;
+        
         let chatImageBase64 = null;
-        let activeSidebarTab = 'obrolan'; // 'obrolan' | 'cari'
+        let chatFile = null; // { name: string, url: base64 }
+        let chatAudioBase64 = null; // VN Base64
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let isRecording = false;
+        
+        let activeSidebarTab = 'obrolan'; 
+        
+        // Notifikasi state global
+        window.unreadSenders = new Set();
+        let globalChatListener = null;
+        let notifications = [];
+
+        // Foto Profil Kustom (Diunggah)
+        let uploadedAvatarBase64 = null;
 
         const avatarOptions = [
             "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=e8f7f7",
@@ -344,7 +444,7 @@
         window.showToast = (message) => {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            toast.className = 'bg-slate-800 text-white px-5 py-3 rounded-full shadow-xl flex items-center gap-3 toast-enter pointer-events-auto border border-slate-700/50 backdrop-blur-sm bg-slate-800/90';
+            toast.className = 'bg-slate-800 text-white px-5 py-3 rounded-full shadow-xl flex items-center gap-3 toast-enter pointer-events-auto border border-slate-700/50 backdrop-blur-sm bg-slate-800/90 z-[999]';
             toast.innerHTML = `<div class="bg-brand-500/20 p-1 rounded-full text-brand-400"><i data-lucide="check-circle-2" class="w-5 h-5"></i></div><span class="text-sm font-medium tracking-wide">${message}</span>`;
             container.appendChild(toast);
             lucide.createIcons({ root: toast });
@@ -352,10 +452,10 @@
         };
 
         // ================= INISIALISASI =================
-        async function initApp() {
+        window.initApp = async () => {
             lucide.createIcons();
             window.renderAvatarOptions();
-            try { await signInAnonymously(auth); } catch (error) { window.showToast("Gagal terhubung."); return; }
+            try { await signInAnonymously(auth); } catch (error) { window.showToast("Gagal terhubung ke Database."); return; }
 
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
@@ -364,13 +464,11 @@
                         try {
                             const userRef = doc(db, rootDbId, 'public', 'users', savedUsername);
                             
-                            // Dengarkan perubahan data profil secara realtime (untuk update saldo & followers otomatis)
                             userUnsubscribe = onSnapshot(userRef, (docSnap) => {
                                 if (docSnap.exists()) {
                                     const isFirstLoad = !currentUser;
                                     currentUser = docSnap.data();
                                     
-                                    // Pastikan array social selalu ada
                                     if(!currentUser.followers) currentUser.followers = [];
                                     if(!currentUser.following) currentUser.following = [];
 
@@ -378,20 +476,24 @@
                                     else {
                                         updateUserProfileUI();
                                         if(!document.getElementById('sidebar-panel').classList.contains('-translate-x-full')) {
-                                            fetchUsersForSidebar(); // Re-render sidebar jika ada perubahan social
+                                            fetchUsersForSidebar();
                                         }
                                     }
                                 } else {
                                     localStorage.removeItem('foredu_active_username');
-                                    document.getElementById('auth-screen').classList.remove('hidden');
-                                    document.getElementById('loading-overlay').classList.add('hidden');
+                                    const authScreen = document.getElementById('auth-screen');
+                                    const loadingOverlay = document.getElementById('loading-overlay');
+                                    if (authScreen) authScreen.classList.remove('hidden');
+                                    if (loadingOverlay) loadingOverlay.classList.add('hidden');
                                 }
                             });
-                            return; // Stop here, onSnapshot will trigger startApp()
+                            return; 
                         } catch (e) { console.error(e); }
                     }
-                    document.getElementById('loading-overlay').classList.add('hidden');
-                    document.getElementById('auth-screen').classList.remove('hidden');
+                    const authScreen = document.getElementById('auth-screen');
+                    const loadingOverlay = document.getElementById('loading-overlay');
+                    if (loadingOverlay) loadingOverlay.classList.add('hidden');
+                    if (authScreen) authScreen.classList.remove('hidden');
                 }
             });
         }
@@ -407,8 +509,115 @@
                 
                 updateUserProfileUI();
                 listenToPosts();
+                listenToUnreadChats(); 
+                listenToNotifications(); 
             }, 300);
         }
+        
+        // ================= NOTIFIKASI & SISTEM UPDATE AVATAR =================
+        let notifUnsubscribe = null;
+        
+        function listenToNotifications() {
+            if(notifUnsubscribe) notifUnsubscribe();
+            notifUnsubscribe = onSnapshot(collection(db, rootDbId, 'public', 'notifications'), (snap) => {
+                notifications = [];
+                snap.forEach(d => { 
+                    if(d.data().to === currentUser.username) {
+                        notifications.push({id: d.id, ...d.data()}); 
+                    }
+                });
+                notifications.sort((a,b) => b.timestamp - a.timestamp);
+                
+                const hasUnread = notifications.some(n => !n.read);
+                const badgeNotif = document.getElementById('badge-notif');
+                if(badgeNotif) badgeNotif.classList.toggle('hidden', !hasUnread);
+                updateGlobalBadge();
+                renderNotifView();
+            });
+        }
+
+        function renderNotifView() {
+            const container = document.getElementById('view-notif');
+            if(!container) return;
+            if(notifications.length === 0) {
+                container.innerHTML = `<div class="text-center py-10 text-slate-400 text-sm">Belum ada notifikasi baru.</div>`;
+                return;
+            }
+            container.innerHTML = notifications.map(n => `
+                <div class="bg-white p-3 rounded-2xl flex items-center gap-3 border border-slate-100 ${n.read ? 'opacity-70' : 'border-brand-100 shadow-sm'}">
+                    <img src="${n.fromAvatar}" class="w-10 h-10 rounded-full border bg-slate-50">
+                    <div class="flex-1">
+                        <p class="text-sm font-bold text-slate-800">${n.fromName}</p>
+                        <p class="text-[10px] text-slate-500">Mulai mengikuti Anda</p>
+                    </div>
+                    ${!(currentUser.following || []).includes(n.from) ? `
+                        <button onclick="window.handleFollback('${n.from}', '${n.id}')" class="bg-brand-500 text-white text-[10px] font-bold px-3 py-1.5 rounded-full hover:bg-brand-600 transition-all">Follback</button>
+                    ` : `<span class="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-full">Diikuti</span>`}
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        window.handleFollback = async (target, nid) => {
+            await window.toggleFollow(target);
+            await updateDoc(doc(db, rootDbId, 'public', 'notifications', nid), { read: true });
+        };
+
+        function listenToUnreadChats() {
+            if(globalChatListener) globalChatListener();
+            globalChatListener = onSnapshot(collection(db, rootDbId, 'public', 'chat_messages'), (snap) => {
+                let hasUnread = false;
+                window.unreadSenders.clear();
+                snap.forEach(d => {
+                    const data = d.data();
+                    if(data.receiver === currentUser.username && !data.read) {
+                        hasUnread = true;
+                        window.unreadSenders.add(data.sender);
+                    }
+                });
+                
+                const tabBadge = document.getElementById('badge-chat');
+                if(tabBadge) tabBadge.classList.toggle('hidden', !hasUnread);
+                updateGlobalBadge();
+
+                if(activeSidebarTab === 'obrolan' && !document.getElementById('sidebar-panel').classList.contains('-translate-x-full')) {
+                    renderSidebarViews();
+                }
+            });
+        }
+        
+        function updateGlobalBadge() {
+            const badgeNotif = document.getElementById('badge-notif');
+            const badgeChat = document.getElementById('badge-chat');
+            const hasNotif = badgeNotif && !badgeNotif.classList.contains('hidden');
+            const hasChat = badgeChat && !badgeChat.classList.contains('hidden');
+            
+            const globalBadge = document.getElementById('global-badge');
+            const headerNotifBadge = document.getElementById('header-notif-badge');
+            
+            if(globalBadge) globalBadge.classList.toggle('hidden', !(hasNotif || hasChat));
+            if(headerNotifBadge) headerNotifBadge.classList.toggle('hidden', !hasNotif);
+        }
+
+        window.updateProfileAvatar = async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (file.size > 909312) return window.showToast("Ukuran maksimal foto 888 KB.");
+            
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const newAvatarBase64 = e.target.result;
+                try {
+                    const userRef = doc(db, rootDbId, 'public', 'users', currentUser.username);
+                    await updateDoc(userRef, { avatar: newAvatarBase64 });
+                    window.showToast("Foto profil berhasil diperbarui!");
+                } catch (err) {
+                    console.error(err);
+                    window.showToast("Gagal memperbarui foto profil.");
+                }
+            }
+            reader.readAsDataURL(file);
+        };
 
         // ================= SOCIAL: FOLLOW SYSTEM =================
         window.toggleFollow = async (targetUsername) => {
@@ -425,9 +634,19 @@
                 } else {
                     await updateDoc(myRef, { following: arrayUnion(targetUsername) });
                     await updateDoc(targetRef, { followers: arrayUnion(currentUser.username) });
+                    
+                    // Kirim Notifikasi ke Target
+                    await addDoc(collection(db, rootDbId, 'public', 'notifications'), {
+                        to: targetUsername, 
+                        from: currentUser.username, 
+                        fromName: currentUser.name, 
+                        fromAvatar: currentUser.avatar,
+                        timestamp: Date.now(), 
+                        read: false
+                    });
+                    
                     window.showToast(`Berhasil mengikuti @${targetUsername}`);
                 }
-                // UI updates handled automatically by onSnapshot on currentUser
             } catch (e) { console.error(e); window.showToast('Gagal memproses koneksi.'); }
         };
 
@@ -461,20 +680,33 @@
 
             const tabObrolan = document.getElementById('tab-obrolan');
             const tabCari = document.getElementById('tab-cari');
+            const tabNotif = document.getElementById('tab-notif');
+            
             const viewObrolan = document.getElementById('view-obrolan');
             const viewCari = document.getElementById('view-cari');
+            const viewNotif = document.getElementById('view-notif');
+
+            if(tabObrolan) tabObrolan.className = "relative flex-1 py-3 text-[10px] font-bold text-slate-400 border-b-2 border-transparent transition-colors hover:text-slate-600 uppercase tracking-tighter";
+            if(tabCari) tabCari.className = "flex-1 py-3 text-[10px] font-bold text-slate-400 border-b-2 border-transparent transition-colors hover:text-slate-600 uppercase tracking-tighter";
+            if(tabNotif) tabNotif.className = "relative flex-1 py-3 text-[10px] font-bold text-slate-400 border-b-2 border-transparent transition-colors hover:text-slate-600 uppercase tracking-tighter";
+
+            if(viewObrolan) viewObrolan.classList.add('hidden');
+            if(viewCari) { viewCari.classList.add('hidden'); viewCari.classList.remove('flex'); }
+            if(viewNotif) { viewNotif.classList.add('hidden'); viewNotif.classList.remove('flex'); }
 
             if (tab === 'obrolan') {
-                tabObrolan.className = "flex-1 py-3 text-sm font-bold text-brand-500 border-b-2 border-brand-500 transition-colors";
-                tabCari.className = "flex-1 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent transition-colors hover:text-slate-600";
-                viewObrolan.classList.remove('hidden');
-                viewCari.classList.add('hidden');
-            } else {
-                tabCari.className = "flex-1 py-3 text-sm font-bold text-brand-500 border-b-2 border-brand-500 transition-colors";
-                tabObrolan.className = "flex-1 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent transition-colors hover:text-slate-600";
-                viewCari.classList.remove('hidden');
-                viewCari.classList.add('flex');
-                viewObrolan.classList.add('hidden');
+                if(tabObrolan) tabObrolan.className = "relative flex-1 py-3 text-[10px] font-bold text-brand-500 border-b-2 border-brand-500 transition-colors uppercase tracking-tighter";
+                if(viewObrolan) viewObrolan.classList.remove('hidden');
+            } else if (tab === 'cari') {
+                if(tabCari) tabCari.className = "flex-1 py-3 text-[10px] font-bold text-brand-500 border-b-2 border-brand-500 transition-colors uppercase tracking-tighter";
+                if(viewCari) { viewCari.classList.remove('hidden'); viewCari.classList.add('flex'); }
+            } else if (tab === 'notif') {
+                if(tabNotif) tabNotif.className = "relative flex-1 py-3 text-[10px] font-bold text-brand-500 border-b-2 border-brand-500 transition-colors uppercase tracking-tighter";
+                if(viewNotif) { viewNotif.classList.remove('hidden'); viewNotif.classList.add('flex'); }
+                
+                notifications.forEach(async n => { 
+                    if(!n.read) await updateDoc(doc(db, rootDbId, 'public', 'notifications', n.id), {read: true}); 
+                });
             }
             
             renderSidebarViews();
@@ -496,30 +728,32 @@
 
         function renderSidebarViews() {
             if(!currentUser) return;
-            
             const myFollowing = currentUser.following || [];
             
-            // Render View 1: Obrolan (Hanya yang di-follow)
             const obrolanContainer = document.getElementById('view-obrolan');
             const followedUsers = allUsers.filter(u => myFollowing.includes(u.username));
             
             if (followedUsers.length === 0) {
                 obrolanContainer.innerHTML = `<div class="text-center text-slate-400 mt-10 text-sm p-4 bg-slate-50 rounded-xl border border-slate-100">Belum mengikuti siapa pun.<br>Cari teman di tab sebelah!</div>`;
             } else {
-                obrolanContainer.innerHTML = followedUsers.map(u => `
-                    <div onclick="window.openChat('${u.username}')" class="flex items-center gap-3 p-2.5 hover:bg-slate-50 rounded-xl cursor-pointer transition-colors border border-transparent hover:border-slate-100 group">
-                        <img src="${u.avatar}" class="w-10 h-10 rounded-full bg-slate-100 border border-slate-200">
+                obrolanContainer.innerHTML = followedUsers.map(u => {
+                    const hasUnread = window.unreadSenders && window.unreadSenders.has(u.username);
+                    return `
+                    <div onclick="window.openChat('${u.username}')" class="relative flex items-center gap-3 p-2.5 hover:bg-slate-50 rounded-xl cursor-pointer transition-colors border border-transparent hover:border-slate-100 group">
+                        <div class="relative">
+                            <img src="${u.avatar}" class="w-10 h-10 rounded-full bg-slate-100 border border-slate-200">
+                            ${hasUnread ? '<span class="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>' : ''}
+                        </div>
                         <div class="flex-1 overflow-hidden">
                             <div class="font-bold text-sm text-slate-800 truncate">${u.name} ${u.username === 'zkn' ? '<i data-lucide="badge-check" class="w-3.5 h-3.5 inline text-brand-500 fill-brand-50"></i>' : ''}</div>
-                            <div class="text-[11px] text-slate-500 truncate">Ketuk untuk chat</div>
+                            <div class="text-[11px] truncate ${hasUnread ? 'text-brand-600 font-bold' : 'text-slate-500'}">${hasUnread ? 'Ada pesan baru!' : 'Ketuk untuk chat'}</div>
                         </div>
-                        <i data-lucide="message-circle" class="w-5 h-5 text-brand-300 opacity-0 group-hover:opacity-100 transition-opacity"></i>
-                    </div>
-                `).join('');
+                        <i data-lucide="message-circle" class="w-5 h-5 ${hasUnread ? 'text-brand-500 fill-brand-50' : 'text-brand-300 opacity-0 group-hover:opacity-100'} transition-opacity"></i>
+                    </div>`;
+                }).join('');
             }
 
-            // Render View 2: Cari Teman (Rekomendasi - belum di-follow)
-            window.handleSearchFriend(); // Panggil fungsi filter agar sinkron dengan kotak pencarian
+            window.handleSearchFriend(); 
             lucide.createIcons();
         }
 
@@ -528,7 +762,6 @@
             const cariContainer = document.getElementById('list-cari');
             const myFollowing = currentUser.following || [];
             
-            // Filter: Bukan saya, bukan yang sudah di-follow, dan cocok dengan pencarian
             const recommendations = allUsers.filter(u => {
                 if (myFollowing.includes(u.username)) return false;
                 if (!query) return true;
@@ -558,7 +791,8 @@
             activeChatUser = allUsers.find(u => u.username === username);
             document.getElementById('view-obrolan').classList.add('hidden');
             document.getElementById('view-cari').classList.add('hidden');
-            document.getElementById('sidebar-tabs').classList.add('hidden'); // Sembunyikan tabs saat chat
+            document.getElementById('view-notif').classList.add('hidden');
+            document.getElementById('sidebar-tabs').classList.add('hidden'); 
             
             document.getElementById('sidebar-chat-view').classList.remove('hidden');
             document.getElementById('sidebar-chat-view').classList.add('flex');
@@ -585,9 +819,14 @@
 
             chatUnsubscribe = onSnapshot(chatRef, (snapshot) => {
                 let msgs = [];
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    if(data.chatId === currentChatId) msgs.push({ id: doc.id, ...data });
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    if(data.chatId === currentChatId) {
+                        msgs.push({ id: docSnap.id, ...data });
+                        if(data.receiver === currentUser.username && !data.read) {
+                            updateDoc(doc(db, rootDbId, 'public', 'chat_messages', docSnap.id), {read: true});
+                        }
+                    }
                 });
                 msgs.sort((a, b) => a.timestamp - b.timestamp);
                 renderChatMessages(msgs);
@@ -608,12 +847,28 @@
                 let textContent = (m.text || '').replace(urlRegex, function(url) {
                     return `<a href="${url}" target="_blank" class="underline ${isMe ? 'text-white font-bold' : 'text-brand-600'} break-all hover:opacity-80">${url}</a>`;
                 });
+                
+                let fileContent = m.file ? `
+                    <div class="mt-1 bg-black/5 rounded-lg p-2 flex items-center gap-2 border ${isMe ? 'border-brand-400' : 'border-slate-200'}">
+                        <i data-lucide="file-text" class="w-5 h-5 shrink-0"></i>
+                        <span class="text-xs truncate max-w-[150px] font-medium">${m.file.name}</span>
+                        <a href="${m.file.url}" download="${m.file.name}" class="ml-2 text-[10px] font-bold bg-white text-brand-600 px-2 py-1 rounded shadow-sm hover:bg-slate-50 transition-colors">Unduh</a>
+                    </div>
+                ` : '';
+
+                let audioContent = m.audio ? `
+                    <div class="mt-1">
+                        <audio controls src="${m.audio}" class="h-8 max-w-[200px]"></audio>
+                    </div>
+                ` : '';
 
                 return `
                 <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'} max-w-[85%] ${isMe ? 'ml-auto' : 'mr-auto'} group">
                     <div class="px-3.5 py-2.5 shadow-sm text-sm ${isMe ? 'bg-brand-500 text-white rounded-2xl rounded-tr-sm' : 'bg-white border border-slate-200 text-slate-700 rounded-2xl rounded-tl-sm'}">
                         ${m.image ? `<img src="${m.image}" class="max-w-[200px] rounded-lg mb-1.5 border ${isMe ? 'border-brand-400' : 'border-slate-100'}">` : ''}
                         ${textContent ? `<div>${textContent}</div>` : ''}
+                        ${fileContent}
+                        ${audioContent}
                     </div>
                     <span class="text-[9px] text-slate-400 mt-1 mx-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                         ${new Date(m.timestamp).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'})}
@@ -622,16 +877,21 @@
             `}).join('');
             
             container.scrollTop = container.scrollHeight;
+            lucide.createIcons({ root: container });
         }
 
+        // ================= FILE UPLOAD SYSTEM (CHAT) =================
         window.previewChatImage = (event) => {
             const file = event.target.files[0];
             if (file) {
+                if (file.size > 909312) return window.showToast("Ukuran maksimal 888 KB (Batas Database).");
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     chatImageBase64 = e.target.result;
                     document.getElementById('chat-image-preview').src = chatImageBase64;
                     document.getElementById('chat-image-preview-container').classList.remove('hidden');
+                    window.removeChatFile(); 
+                    window.removeChatAudio();
                 }
                 reader.readAsDataURL(file);
             }
@@ -643,21 +903,104 @@
             document.getElementById('chat-image-preview-container').classList.add('hidden');
         };
 
+        window.previewChatFile = (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                if (file.size > 909312) return window.showToast("Ukuran maksimal 888 KB (Batas Database).");
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    chatFile = { name: file.name, url: e.target.result };
+                    document.getElementById('chat-file-preview-name').innerText = file.name;
+                    document.getElementById('chat-file-preview-container').classList.remove('hidden');
+                    document.getElementById('chat-file-preview-container').classList.add('flex');
+                    window.removeChatImage(); 
+                    window.removeChatAudio();
+                }
+                reader.readAsDataURL(file);
+            }
+        };
+
+        window.removeChatFile = () => {
+            chatFile = null;
+            document.getElementById('chat-file-input').value = "";
+            document.getElementById('chat-file-preview-container').classList.add('hidden');
+            document.getElementById('chat-file-preview-container').classList.remove('flex');
+        };
+
+        window.toggleChatAudioRecording = async () => {
+            const btnRecord = document.getElementById('btn-record-chat-audio');
+            
+            if (isRecording) {
+                mediaRecorder.stop();
+                isRecording = false;
+                btnRecord.classList.remove('text-red-500', 'animate-pulse');
+                btnRecord.classList.add('text-slate-400');
+            } else {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+
+                    mediaRecorder.ondataavailable = (e) => {
+                        if (e.data.size > 0) audioChunks.push(e.data);
+                    };
+
+                    mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        if (audioBlob.size > 909312) return window.showToast("Ukuran VN maksimal 888 KB.");
+                        
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            chatAudioBase64 = e.target.result;
+                            document.getElementById('chat-audio-preview').src = chatAudioBase64;
+                            document.getElementById('chat-audio-preview-container').classList.remove('hidden');
+                            document.getElementById('chat-audio-preview-container').classList.add('flex');
+                            
+                            window.removeChatImage();
+                            window.removeChatFile();
+                        };
+                        reader.readAsDataURL(audioBlob);
+                        stream.getTracks().forEach(track => track.stop());
+                    };
+
+                    mediaRecorder.start();
+                    isRecording = true;
+                    window.showToast("Merekam VN... Tekan mic lagi untuk berhenti.");
+                    
+                    btnRecord.classList.remove('text-slate-400');
+                    btnRecord.classList.add('text-red-500', 'animate-pulse');
+                    
+                } catch (err) {
+                    console.error(err);
+                    window.showToast("Gagal akses mikrofon. Izinkan di pengaturan browser.");
+                }
+            }
+        };
+
+        window.removeChatAudio = () => {
+            chatAudioBase64 = null;
+            document.getElementById('chat-audio-preview-container').classList.add('hidden');
+            document.getElementById('chat-audio-preview-container').classList.remove('flex');
+            document.getElementById('chat-audio-preview').src = "";
+        };
+
         window.sendChatMessage = async () => {
             const input = document.getElementById('chat-input');
             const text = input.value.trim();
-            if(!text && !chatImageBase64) return;
+            if(!text && !chatImageBase64 && !chatFile && !chatAudioBase64) return;
 
             const chatRef = collection(db, rootDbId, 'public', 'chat_messages');
             const chatId = [currentUser.username, activeChatUser.username].sort().join('_');
 
             const newMsg = {
                 chatId: chatId, sender: currentUser.username, receiver: activeChatUser.username,
-                text: text, image: chatImageBase64, timestamp: Date.now()
+                text: text, image: chatImageBase64, file: chatFile, audio: chatAudioBase64, timestamp: Date.now(), read: false
             };
 
             input.value = '';
             window.removeChatImage();
+            window.removeChatFile();
+            window.removeChatAudio();
 
             try { await addDoc(chatRef, newMsg); } 
             catch(e) { window.showToast("Gagal mengirim pesan."); console.error(e); }
@@ -700,7 +1043,38 @@
             `).join('');
         };
         
-        window.selectAvatar = (index) => { selectedAvatarIndex = index; window.renderAvatarOptions(); };
+        window.selectAvatar = (index) => { 
+            selectedAvatarIndex = index; 
+            window.removeAvatarUpload(); 
+            window.renderAvatarOptions(); 
+        };
+
+        // Fungsi Upload Foto Profil Sendiri
+        window.previewAvatarUpload = (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                if (file.size > 909312) return window.showToast("Ukuran maksimal foto profil 888 KB.");
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    uploadedAvatarBase64 = e.target.result;
+                    document.getElementById('custom-avatar-preview').src = uploadedAvatarBase64;
+                    document.getElementById('custom-avatar-preview-container').classList.remove('hidden');
+                    
+                    selectedAvatarIndex = -1;
+                    window.renderAvatarOptions();
+                }
+                reader.readAsDataURL(file);
+            }
+        };
+
+        window.removeAvatarUpload = () => {
+            uploadedAvatarBase64 = null;
+            document.getElementById('auth-avatar-upload').value = "";
+            document.getElementById('custom-avatar-preview-container').classList.add('hidden');
+            
+            if(selectedAvatarIndex === -1) selectedAvatarIndex = 0;
+            window.renderAvatarOptions();
+        };
 
         window.submitAuth = async (e) => {
             e.preventDefault();
@@ -724,21 +1098,23 @@
                     currentUser = data;
                     localStorage.setItem('foredu_active_username', username);
                     window.showToast(`Selamat datang kembali, ${currentUser.name}!`);
-                    startApp(); // Note: onSnapshot in initApp will catch this and sync eventually, but we call startApp directly for immediate UX
+                    startApp(); 
                 } else {
                     const snap = await getDoc(userRef);
                     if (snap.exists()) throw new Error("Username sudah dipakai, pilih yang lain!");
                     
+                    const finalAvatar = uploadedAvatarBase64 || avatarOptions[selectedAvatarIndex] || avatarOptions[0];
+                    
                     let newUser = {
                         username: username, password: password, name: document.getElementById('auth-name').value.trim(),
-                        role: document.getElementById('auth-campus').value, avatar: avatarOptions[selectedAvatarIndex],
+                        role: document.getElementById('auth-campus').value, avatar: finalAvatar,
                         coins: 1000, level: "Maba", followers: [], following: []
                     };
 
                     if (username === 'zkn') {
                         if (password !== 'Singakucing1') throw new Error("Akses Pendaftaran Dev Ditolak: Password salah!");
                         newUser.name = 'Anzenna'; newUser.role = 'System Admin (Dev)'; newUser.level = 'God Tier';
-                        newUser.coins = 9999999; newUser.avatar = 'https://images.unsplash.com/photo-1618336753974-aae8e04506aa?q=80&w=200&auto=format&fit=crop';
+                        newUser.coins = 9999999; newUser.avatar = uploadedAvatarBase64 || 'https://images.unsplash.com/photo-1618336753974-aae8e04506aa?q=80&w=200&auto=format&fit=crop';
                     }
                     
                     await setDoc(userRef, newUser);
@@ -766,19 +1142,126 @@
             }, (error) => console.error("Gagal mengambil feed: ", error));
         }
 
+        // ================= FILE & AUDIO UPLOAD SYSTEM (POST FORUM) =================
+        window.previewImage = (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                if (file.size > 909312) return window.showToast("Ukuran maksimal 888 KB (Batas Database).");
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    uploadedImageBase64 = e.target.result;
+                    document.getElementById('image-preview').src = uploadedImageBase64;
+                    document.getElementById('image-preview-container').classList.remove('hidden');
+                    window.removeFile(); 
+                    window.removeAudio();
+                }
+                reader.readAsDataURL(file);
+            }
+        };
+        
+        window.removeImage = () => {
+            uploadedImageBase64 = null;
+            document.getElementById('image-input').value = "";
+            document.getElementById('image-preview-container').classList.add('hidden');
+        };
+
+        window.previewFile = (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                if (file.size > 909312) return window.showToast("Ukuran maksimal 888 KB (Batas Database).");
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    uploadedFile = { name: file.name, url: e.target.result };
+                    document.getElementById('file-preview-name').innerText = file.name;
+                    document.getElementById('file-preview-container').classList.remove('hidden');
+                    document.getElementById('file-preview-container').classList.add('flex');
+                    window.removeImage(); 
+                    window.removeAudio();
+                }
+                reader.readAsDataURL(file);
+            }
+        };
+        
+        window.removeFile = () => {
+            uploadedFile = null;
+            document.getElementById('file-input').value = "";
+            document.getElementById('file-preview-container').classList.add('hidden');
+            document.getElementById('file-preview-container').classList.remove('flex');
+        };
+
+        window.togglePostAudioRecording = async () => {
+            const btnRecord = document.getElementById('btn-post-record-audio');
+            
+            if (isPostRecording) {
+                postMediaRecorder.stop();
+                isPostRecording = false;
+                btnRecord.classList.remove('text-red-500', 'animate-pulse');
+                btnRecord.classList.add('text-slate-400');
+            } else {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    postMediaRecorder = new MediaRecorder(stream);
+                    postAudioChunks = [];
+
+                    postMediaRecorder.ondataavailable = (e) => {
+                        if (e.data.size > 0) postAudioChunks.push(e.data);
+                    };
+
+                    postMediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(postAudioChunks, { type: 'audio/webm' });
+                        if (audioBlob.size > 909312) return window.showToast("Ukuran VN maksimal 888 KB.");
+                        
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            uploadedAudioBase64 = e.target.result;
+                            document.getElementById('audio-preview').src = uploadedAudioBase64;
+                            document.getElementById('audio-preview-container').classList.remove('hidden');
+                            document.getElementById('audio-preview-container').classList.add('flex');
+                            
+                            window.removeImage();
+                            window.removeFile();
+                        };
+                        reader.readAsDataURL(audioBlob);
+                        stream.getTracks().forEach(track => track.stop());
+                    };
+
+                    postMediaRecorder.start();
+                    isPostRecording = true;
+                    window.showToast("Merekam VN untuk postingan...");
+                    
+                    btnRecord.classList.remove('text-slate-400');
+                    btnRecord.classList.add('text-red-500', 'animate-pulse');
+                    
+                } catch (err) {
+                    console.error(err);
+                    window.showToast("Gagal akses mikrofon. Izinkan di pengaturan browser.");
+                }
+            }
+        };
+
+        window.removeAudio = () => {
+            uploadedAudioBase64 = null;
+            document.getElementById('audio-preview-container').classList.add('hidden');
+            document.getElementById('audio-preview-container').classList.remove('flex');
+            document.getElementById('audio-preview').src = "";
+        };
+
         window.submitPost = async () => {
             const textInput = document.getElementById('post-text');
             const content = textInput.value.trim();
-            if (!content && !uploadedImageBase64) return window.showToast('Postingan tidak boleh kosong!');
+            if (!content && !uploadedImageBase64 && !uploadedFile && !uploadedAudioBase64) return window.showToast('Postingan tidak boleh kosong!');
 
             const postsRef = collection(db, rootDbId, 'public', 'posts');
             const newPost = {
                 authorUsername: currentUser.username, authorName: currentUser.name, avatar: currentUser.avatar,
-                role: currentUser.role, content: content, image: uploadedImageBase64, timestamp: Date.now(),
+                role: currentUser.role, content: content, image: uploadedImageBase64, file: uploadedFile, audio: uploadedAudioBase64, timestamp: Date.now(),
                 likes: [], commentsList: [], gifts: []
             };
 
-            textInput.value = ""; window.removeImage();
+            textInput.value = ""; 
+            window.removeImage(); 
+            window.removeFile();
+            window.removeAudio();
 
             try { await addDoc(postsRef, newPost); window.showToast('Berhasil mempublikasikan post!'); } 
             catch (err) { window.showToast('Gagal mempublikasikan post.'); }
@@ -822,7 +1305,6 @@
             const creatorRef = doc(db, rootDbId, 'public', 'users', post.authorUsername);
 
             try {
-                // Saldo dipotong otomatis via Firestore onSnapshot, tapi kita kirim update ke DB
                 let gifts = [...(post.gifts || [])];
                 const existing = gifts.find(g => g.emoji === emoji);
                 if (existing) existing.count += 1; else gifts.push({ emoji, count: 1 });
@@ -887,12 +1369,29 @@
                 
                 let giftsHTML = '';
                 if (post.gifts && post.gifts.length > 0) {
-                    const giftItems = post.gifts.map(g => `<span class="bg-pink-50 text-pink-600 px-2 py-1 rounded-md text-xs font-bold border border-pink-100 flex items-center gap-1">${g.emoji} x${g.count}</span>`).join('');
+                    const giftItems = post.gifts.map(g => `<span class="bg-pink-50 text-pink-600 px-2 py-0.5 rounded-md text-xs font-bold border border-pink-100 flex items-center gap-1">${g.emoji} x${g.count}</span>`).join('');
                     giftsHTML = `<div class="mt-3 flex items-center gap-2 flex-wrap bg-slate-50 p-2 rounded-xl border border-slate-100"><i data-lucide="award" class="w-4 h-4 text-pink-500"></i><span class="text-xs text-slate-500 font-semibold uppercase tracking-wide">Saweran:</span>${giftItems}</div>`;
                 }
-                let imageHTML = post.image ? `<img src="${post.image}" class="mt-3 rounded-xl border border-slate-200 max-h-96 w-full object-cover">` : '';
+                
+                let imageHTML = post.image ? `<img src="${post.image}" class="mt-3 rounded-xl w-full max-h-96 object-cover border border-slate-200 shadow-sm">` : '';
+                
+                let fileHTML = post.file ? `
+                    <div class="mt-3 bg-slate-50 rounded-xl p-3 border border-slate-100 flex items-center gap-3">
+                        <div class="bg-brand-100 text-brand-600 p-2 rounded-lg"><i data-lucide="file-text" class="w-6 h-6"></i></div>
+                        <div class="flex-1 overflow-hidden">
+                            <p class="font-semibold text-sm text-slate-800 truncate">${post.file.name}</p>
+                            <p class="text-xs text-slate-500">Dokumen Lampiran</p>
+                        </div>
+                        <a href="${post.file.url}" download="${post.file.name}" class="bg-white border border-slate-200 text-sm font-semibold px-4 py-1.5 rounded-full hover:bg-slate-50 transition-colors">Unduh</a>
+                    </div>
+                ` : '';
 
-                // Add Follow button if not me and not followed
+                let audioHTML = post.audio ? `
+                    <div class="mt-3">
+                        <audio controls src="${post.audio}" class="h-8 max-w-full"></audio>
+                    </div>
+                ` : '';
+
                 let followBtnHTML = '';
                 if (post.authorUsername !== currentUser.username) {
                     const isFollowing = (currentUser.following || []).includes(post.authorUsername);
@@ -920,24 +1419,16 @@
                         </div>
                     </div>
                     <div class="pl-0 sm:pl-14 text-slate-700 text-sm leading-relaxed">
-                        <p>${post.content}</p>${imageHTML}${giftsHTML}
+                        <p>${post.content}</p>${imageHTML}${fileHTML}${audioHTML}${giftsHTML}
                     </div>
                     <div class="pl-0 sm:pl-14 flex items-center gap-2 sm:gap-6 mt-1 relative">
-                        <button onclick="window.toggleLike('${post.id}')" class="flex items-center gap-1.5 ${isLikedByMe ? 'text-red-500' : 'text-slate-500 hover:text-brand-500'} transition-colors text-sm font-medium group">
-                            <div class="p-1.5 rounded-full group-hover:bg-brand-50"><i data-lucide="heart" class="w-4 h-4 ${isLikedByMe ? 'fill-red-500 heart-pop' : ''}"></i></div>
-                            <span>${likeCount}</span>
-                        </button>
-                        <button onclick="window.toggleCommentSection('${post.id}')" class="flex items-center gap-1.5 text-slate-500 hover:text-brand-500 transition-colors text-sm font-medium group">
-                            <div class="p-1.5 rounded-full group-hover:bg-brand-50"><i data-lucide="message-square" class="w-4 h-4"></i></div>
-                            ${commentCount}
-                        </button>
-                        <div class="flex-1"></div>
+                        <button onclick="window.toggleLike('${post.id}')" class="flex items-center gap-1.5 ${isLikedByMe ? 'text-red-500 font-bold' : 'text-slate-400'} active:scale-90 transition-transform"><i data-lucide="heart" class="w-4 h-4 ${isLikedByMe ? 'fill-red-500' : ''}"></i><span class="text-xs">${(post.likes || []).length}</span></button>
                         <div class="relative">
-                            <button onclick="window.toggleGiftMenu(this)" class="flex items-center gap-1.5 text-pink-500 bg-pink-50 border border-pink-100 hover:bg-pink-100 transition-colors text-sm font-semibold px-3 py-1.5 rounded-full active:scale-95 shadow-sm"><i data-lucide="gift" class="w-4 h-4"></i> Sawer</button>
-                            <div class="gift-menu hidden absolute bottom-full right-0 mb-2 bg-white rounded-xl shadow-xl border border-slate-100 p-2 w-48 z-20 origin-bottom-right">
-                                <div class="text-xs font-bold text-slate-400 px-2 py-1 uppercase tracking-wide">Pilih Hadiah</div>
-                                <button onclick="window.sendGift(event, '${post.id}', '☕', 10)" class="w-full flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg text-left"><span class="flex items-center gap-2"><span class="text-xl">☕</span> Kopi</span><span class="text-xs font-bold text-accent-500 bg-amber-50 px-2 py-0.5 rounded-md">10 🪙</span></button>
-                                <button onclick="window.sendGift(event, '${post.id}', '📚', 50)" class="w-full flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg text-left"><span class="flex items-center gap-2"><span class="text-xl">📚</span> Buku</span><span class="text-xs font-bold text-accent-500 bg-amber-50 px-2 py-0.5 rounded-md">50 🪙</span></button>
+                            <button onclick="window.toggleGiftMenu(this)" class="bg-pink-50 text-pink-600 px-3 py-1.5 rounded-full text-xs font-bold border border-pink-100 flex items-center gap-1 active:scale-95 transition-all"><i data-lucide="gift" class="w-3.5 h-3.5"></i> Sawer</button>
+                            <div class="gift-menu hidden absolute bottom-full right-0 mb-2 bg-white rounded-xl shadow-xl border p-2 w-48 z-10">
+                                <button onclick="window.sendGift(event, '${post.id}', '☕', 10)" class="w-full flex justify-between p-2 hover:bg-slate-50 rounded-lg text-xs"><span>☕ Kopi</span><b>10 🪙</b></button>
+                                <button onclick="window.sendGift(event, '${post.id}', '🍕', 100)" class="w-full flex justify-between p-2 hover:bg-slate-50 rounded-lg text-xs"><span>🍕 Pizza</span><b>100 🪙</b></button>
+                                <button onclick="window.sendGift(event, '${post.id}', '💎', 1000)" class="w-full flex justify-between p-2 hover:bg-slate-50 rounded-lg text-xs"><span>💎 Sultan</span><b>1k 🪙</b></button>
                             </div>
                         </div>
                     </div>
@@ -978,25 +1469,11 @@
             btn.nextElementSibling.classList.toggle('hidden');
         };
 
-        window.previewImage = (event) => {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    uploadedImageBase64 = e.target.result;
-                    document.getElementById('image-preview').src = uploadedImageBase64;
-                    document.getElementById('image-preview-container').classList.remove('hidden');
-                }
-                reader.readAsDataURL(file);
-            }
-        };
-        window.removeImage = () => {
-            uploadedImageBase64 = null;
-            document.getElementById('image-input').value = "";
-            document.getElementById('image-preview-container').classList.add('hidden');
-        };
-
-        window.onload = initApp;
+        // Initialize App on Load
+        window.addEventListener('load', () => window.initApp());
+        
+        // Clicks outside close gift menus
+        document.addEventListener('click', (e) => { if(!e.target.closest('.relative')) document.querySelectorAll('.gift-menu').forEach(m => m.classList.add('hidden')); });
     </script>
 </body>
 </html>
