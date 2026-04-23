@@ -56,7 +56,7 @@
             <div class="absolute bottom-0 right-0 w-[500px] h-[500px] bg-accent-500/10 rounded-full blur-3xl"></div>
         </div>
 
-        <div class="bg-white rounded-3xl shadow-xl border border-slate-100 p-8 w-full max-w-md relative z-10">
+        <div class="bg-white rounded-3xl shadow-xl border border-slate-100 p-6 sm:p-8 w-full max-w-md relative z-10 max-h-[95vh] overflow-y-auto">
             <div class="text-center mb-6">
                 <div class="inline-flex items-center justify-center bg-brand-500 text-white p-3 rounded-2xl mb-4 shadow-lg shadow-brand-500/30">
                     <i data-lucide="graduation-cap" class="w-10 h-10"></i>
@@ -339,8 +339,9 @@
                             <h2 id="profile-card-name" class="text-lg font-bold text-slate-800">Nama User</h2>
                             <i data-lucide="badge-check" class="w-4 h-4 text-brand-500 fill-brand-50"></i>
                         </div>
-                        <p id="profile-card-campus" class="text-sm text-slate-500 flex items-center gap-1.5 mb-4">
-                            <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> Nama Kampus
+                        <p id="profile-card-campus" class="text-sm text-slate-500 flex items-center gap-1.5 mb-4 group w-max cursor-pointer" onclick="window.editCampus()">
+                            <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> <span id="profile-card-campus-text">Nama Kampus</span>
+                            <i data-lucide="edit-3" class="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity text-slate-400" title="Ganti Kampus"></i>
                         </p>
                         <!-- Updated Profile Stats -->
                         <div class="grid grid-cols-3 gap-2 text-center bg-slate-50 rounded-xl p-3 border border-slate-100">
@@ -608,7 +609,7 @@
             reader.onload = async function(e) {
                 const newAvatarBase64 = e.target.result;
                 try {
-                    const userRef = doc(db, rootDbId, 'public', 'users', currentUser.username);
+                    const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', currentUser.username);
                     await updateDoc(userRef, { avatar: newAvatarBase64 });
                     window.showToast("Foto profil berhasil diperbarui!");
                 } catch (err) {
@@ -617,6 +618,21 @@
                 }
             }
             reader.readAsDataURL(file);
+        };
+
+        // ================= EDIT KAMPUS PROFIL =================
+        window.editCampus = async () => {
+            if(!currentUser) return;
+            const newCampus = prompt("Ubah Nama Kampus Anda:", currentUser.role);
+            if(newCampus && newCampus.trim() !== "" && newCampus.trim() !== currentUser.role) {
+                const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', currentUser.username);
+                try {
+                    await updateDoc(userRef, { role: newCampus.trim() });
+                    window.showToast("Kampus berhasil diperbarui!");
+                } catch(e) { 
+                    window.showToast("Gagal memperbarui kampus."); 
+                }
+            }
         };
 
         // ================= SOCIAL: FOLLOW SYSTEM =================
@@ -731,6 +747,8 @@
             const myFollowing = currentUser.following || [];
             
             const obrolanContainer = document.getElementById('view-obrolan');
+            if(!obrolanContainer) return;
+
             const followedUsers = allUsers.filter(u => myFollowing.includes(u.username));
             
             if (followedUsers.length === 0) {
@@ -773,7 +791,7 @@
             } else {
                 cariContainer.innerHTML = recommendations.map(u => `
                     <div class="flex items-center gap-3 p-2.5 hover:bg-slate-50 rounded-xl transition-colors border border-transparent">
-                        <img src="${u.avatar}" class="w-10 h-10 rounded-full bg-slate-100 border border-slate-200">
+                        <img src="${u.avatar}" class="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 object-cover">
                         <div class="flex-1 overflow-hidden">
                             <div class="font-bold text-sm text-slate-800 truncate">${u.name} ${u.username === 'zkn' ? '<i data-lucide="badge-check" class="w-3.5 h-3.5 inline text-brand-500 fill-brand-50"></i>' : ''}</div>
                             <div class="text-[11px] text-slate-500 truncate">@${u.username}</div>
@@ -802,7 +820,7 @@
                     <i data-lucide="arrow-left" class="w-5 h-5"></i>
                 </button>
                 <div class="flex items-center gap-2">
-                    <img src="${activeChatUser.avatar}" class="w-7 h-7 rounded-full bg-slate-100 border border-slate-200">
+                    <img src="${activeChatUser.avatar}" class="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 object-cover">
                     <div class="flex flex-col">
                         <span class="text-sm font-bold leading-tight">${activeChatUser.name}</span>
                         <span class="text-[9px] text-slate-400 font-normal">Obrolan Privat</span>
@@ -880,7 +898,6 @@
             lucide.createIcons({ root: container });
         }
 
-        // ================= FILE UPLOAD SYSTEM (CHAT) =================
         window.previewChatImage = (event) => {
             const file = event.target.files[0];
             if (file) {
@@ -1300,9 +1317,9 @@
             const post = posts.find(p => p.id === postId);
             if(post.authorUsername === currentUser.username) return window.showToast('Dilarang menyawer postingan sendiri!');
 
-            const postRef = doc(db, rootDbId, 'public', 'posts', postId);
-            const userRef = doc(db, rootDbId, 'public', 'users', currentUser.username);
-            const creatorRef = doc(db, rootDbId, 'public', 'users', post.authorUsername);
+            const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
+            const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', currentUser.username);
+            const creatorRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', post.authorUsername);
 
             try {
                 let gifts = [...(post.gifts || [])];
@@ -1334,7 +1351,12 @@
             document.getElementById('nav-coins').innerText = (currentUser.coins || 0).toLocaleString('id-ID');
             document.getElementById('post-input-avatar').src = currentUser.avatar;
             document.getElementById('profile-card-name').innerText = currentUser.name;
-            document.getElementById('profile-card-campus').innerHTML = `<i data-lucide="map-pin" class="w-3.5 h-3.5"></i> ${currentUser.role}`;
+            
+            const campusTextEl = document.getElementById('profile-card-campus-text');
+            if (campusTextEl) {
+                campusTextEl.innerText = currentUser.role || "Nama Kampus";
+            }
+            
             document.getElementById('profile-card-avatar').src = currentUser.avatar;
             document.getElementById('profile-card-level').innerText = currentUser.level || 'Maba';
             document.getElementById('wallet-coins').innerText = (currentUser.coins || 0).toLocaleString('id-ID');
@@ -1422,7 +1444,15 @@
                         <p>${post.content}</p>${imageHTML}${fileHTML}${audioHTML}${giftsHTML}
                     </div>
                     <div class="pl-0 sm:pl-14 flex items-center gap-2 sm:gap-6 mt-1 relative">
-                        <button onclick="window.toggleLike('${post.id}')" class="flex items-center gap-1.5 ${isLikedByMe ? 'text-red-500 font-bold' : 'text-slate-400'} active:scale-90 transition-transform"><i data-lucide="heart" class="w-4 h-4 ${isLikedByMe ? 'fill-red-500' : ''}"></i><span class="text-xs">${(post.likes || []).length}</span></button>
+                        <button onclick="window.toggleLike('${post.id}')" class="flex items-center gap-1.5 ${isLikedByMe ? 'text-red-500 font-bold' : 'text-slate-400'} active:scale-90 transition-transform">
+                            <div class="p-1.5 rounded-full hover:bg-brand-50"><i data-lucide="heart" class="w-4 h-4 ${isLikedByMe ? 'fill-red-500' : ''}"></i></div>
+                            <span class="text-xs">${(post.likes || []).length}</span>
+                        </button>
+                        <button onclick="window.toggleCommentSection('${post.id}')" class="flex items-center gap-1.5 text-slate-500 hover:text-brand-500 transition-colors text-sm font-medium">
+                            <div class="p-1.5 rounded-full hover:bg-brand-50"><i data-lucide="message-square" class="w-4 h-4"></i></div>
+                            <span class="text-xs">${commentCount}</span>
+                        </button>
+                        <div class="flex-1"></div>
                         <div class="relative">
                             <button onclick="window.toggleGiftMenu(this)" class="bg-pink-50 text-pink-600 px-3 py-1.5 rounded-full text-xs font-bold border border-pink-100 flex items-center gap-1 active:scale-95 transition-all"><i data-lucide="gift" class="w-3.5 h-3.5"></i> Sawer</button>
                             <div class="gift-menu hidden absolute bottom-full right-0 mb-2 bg-white rounded-xl shadow-xl border p-2 w-48 z-10">
@@ -1473,7 +1503,11 @@
         window.addEventListener('load', () => window.initApp());
         
         // Clicks outside close gift menus
-        document.addEventListener('click', (e) => { if(!e.target.closest('.relative')) document.querySelectorAll('.gift-menu').forEach(m => m.classList.add('hidden')); });
+        document.addEventListener('click', (e) => {
+            if(!e.target.closest('.relative')) {
+                document.querySelectorAll('.gift-menu').forEach(m => m.classList.add('hidden'));
+            }
+        });
     </script>
 </body>
 </html>
