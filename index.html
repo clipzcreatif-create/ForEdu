@@ -83,22 +83,25 @@
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-1">Kampus</label>
                         <select id="auth-campus" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-500/50 outline-none transition-all appearance-none cursor-pointer">
-                            <optgroup label="Kampus Utama Malang">
-                                <option value="Binus Malang">Binus University (Malang)</option>
+                            <optgroup label="Kampus Utama/Negeri Malang">
                                 <option value="Universitas Brawijaya">Universitas Brawijaya (UB)</option>
                                 <option value="Universitas Negeri Malang">Universitas Negeri Malang (UM)</option>
                                 <option value="UIN Malang">UIN Maulana Malik Ibrahim</option>
                                 <option value="Politeknik Negeri Malang">Politeknik Negeri Malang (POLINEMA)</option>
+                                <option value="Poltekkes Kemenkes Malang">Poltekkes Kemenkes Malang (POLKESMA)</option>
                             </optgroup>
                             <optgroup label="Kampus Swasta Malang">
+                                <option value="Binus Malang">Binus University (Malang)</option>
                                 <option value="Universitas Muhammadiyah Malang">Universitas Muhammadiyah Malang (UMM)</option>
                                 <option value="Universitas Islam Malang">Universitas Islam Malang (UNISMA)</option>
                                 <option value="Universitas Merdeka Malang">Universitas Merdeka Malang (UNMER)</option>
+                                <option value="Institut Asia Malang">Institut Teknologi dan Bisnis Asia Malang</option>
                                 <option value="ITN Malang">Institut Teknologi Nasional (ITN) Malang</option>
                                 <option value="Universitas PGRI Kanjuruhan">Universitas PGRI Kanjuruhan (UNIKAMA)</option>
                                 <option value="Universitas Tribhuwana Tunggadewi">Universitas Tribhuwana Tunggadewi (UNITRI)</option>
                                 <option value="Universitas Ma Chung">Universitas Ma Chung</option>
-                                <option value="Universitas Widyagama">Universitas Widyagama</option>
+                                <option value="Universitas Widyagama">Universitas Widyagama (UWG)</option>
+                                <option value="Universitas Gajayana">Universitas Gajayana (UNIGA)</option>
                                 <option value="STIE Malangkucecwara">STIE Malangkucecwara (ABM)</option>
                             </optgroup>
                             <optgroup label="Luar Malang">
@@ -1301,11 +1304,114 @@
             const text = inputElement.value.trim();
             if(!text) return;
             const post = posts.find(p => p.id === postId);
-            const postRef = doc(db, rootDbId, 'public', 'posts', postId);
-            const newComment = { author: currentUser.name, avatar: currentUser.avatar, text: text, time: Date.now() };
-            const newCommentsList = [...(post.commentsList || []), newComment];
+            if(!post) return;
+            
+            const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
+            
+            const newComment = { 
+                id: 'c_' + Date.now() + Math.random().toString(36).substr(2, 5),
+                author: currentUser.name, 
+                authorUsername: currentUser.username,
+                avatar: currentUser.avatar, 
+                text: text, 
+                time: Date.now(),
+                likes: [],
+                replies: []
+            };
+
+            const existingComments = (post.commentsList || []).map(c => {
+                if(!c.id) c.id = 'old_' + Math.random().toString(36).substr(2, 9);
+                return c;
+            });
+            
+            const newCommentsList = [...existingComments, newComment];
             inputElement.value = "";
-            try { await updateDoc(postRef, { commentsList: newCommentsList }); } catch(e) { window.showToast('Gagal mengirim komentar'); }
+            
+            try { await updateDoc(postRef, { commentsList: newCommentsList }); } 
+            catch(e) { window.showToast('Gagal mengirim komentar'); }
+        };
+
+        window.toggleReplyInput = (commentId) => {
+            const el = document.getElementById(`reply-input-${commentId}`);
+            if (el) el.classList.toggle('hidden');
+        };
+
+        window.submitReply = async (postId, commentId) => {
+            const inputElement = document.getElementById(`reply-text-${commentId}`);
+            if (!inputElement) return;
+            const text = inputElement.value.trim();
+            if(!text) return;
+            
+            const post = posts.find(p => p.id === postId);
+            if (!post) return;
+            
+            const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
+            const newCommentsList = [...(post.commentsList || [])];
+            const commentIndex = newCommentsList.findIndex(c => c.id === commentId);
+            
+            if (commentIndex > -1) {
+                const newReply = { 
+                    id: 'r_' + Date.now(), 
+                    author: currentUser.name, 
+                    authorUsername: currentUser.username,
+                    avatar: currentUser.avatar, 
+                    text: text, 
+                    time: Date.now(),
+                    likes: []
+                };
+                
+                if (!newCommentsList[commentIndex].replies) newCommentsList[commentIndex].replies = [];
+                newCommentsList[commentIndex].replies.push(newReply);
+                
+                inputElement.value = "";
+                document.getElementById(`reply-input-${commentId}`).classList.add('hidden');
+                
+                try { await updateDoc(postRef, { commentsList: newCommentsList }); } 
+                catch(e) { window.showToast('Gagal mengirim balasan'); }
+            }
+        };
+
+        window.toggleCommentLike = async (postId, commentId) => {
+            const post = posts.find(p => p.id === postId);
+            if (!post) return;
+            const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
+            const newCommentsList = [...(post.commentsList || [])];
+            const commentIndex = newCommentsList.findIndex(c => c.id === commentId);
+            
+            if (commentIndex > -1) {
+                let likes = newCommentsList[commentIndex].likes || [];
+                if (likes.includes(currentUser.username)) {
+                    likes = likes.filter(u => u !== currentUser.username);
+                } else {
+                    likes.push(currentUser.username);
+                }
+                newCommentsList[commentIndex].likes = likes;
+                try { await updateDoc(postRef, { commentsList: newCommentsList }); } catch(e) {}
+            }
+        };
+
+        window.toggleReplyLike = async (postId, commentId, replyId) => {
+            const post = posts.find(p => p.id === postId);
+            if (!post) return;
+            const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
+            const newCommentsList = [...(post.commentsList || [])];
+            const commentIndex = newCommentsList.findIndex(c => c.id === commentId);
+            
+            if (commentIndex > -1) {
+                const replies = newCommentsList[commentIndex].replies || [];
+                const replyIndex = replies.findIndex(r => r.id === replyId);
+                if (replyIndex > -1) {
+                    let likes = replies[replyIndex].likes || [];
+                    if (likes.includes(currentUser.username)) {
+                        likes = likes.filter(u => u !== currentUser.username);
+                    } else {
+                        likes.push(currentUser.username);
+                    }
+                    replies[replyIndex].likes = likes;
+                    newCommentsList[commentIndex].replies = replies;
+                    try { await updateDoc(postRef, { commentsList: newCommentsList }); } catch(e) {}
+                }
+            }
         };
 
         window.sendGift = async (event, postId, emoji, amount) => {
@@ -1422,6 +1528,57 @@
                     }
                 }
 
+                const commentsHTML = (post.commentsList || []).map(c => {
+                    if(!c.id) c.id = 'old_' + Math.random().toString(36).substr(2, 9);
+                    const cIsLiked = (c.likes || []).includes(currentUser.username);
+                    
+                    let repliesHTML = '';
+                    if (c.replies && c.replies.length > 0) {
+                        repliesHTML = `<div class="pl-10 w-full flex flex-col gap-3 mt-1">` + 
+                            c.replies.map(r => {
+                                const rIsLiked = (r.likes || []).includes(currentUser.username);
+                                return `
+                                <div class="flex gap-2.5 items-start w-full">
+                                    <img src="${r.avatar}" class="w-6 h-6 rounded-full border shrink-0 object-cover border-slate-100">
+                                    <div class="flex-1">
+                                        <div class="bg-slate-50 px-3 py-2 rounded-2xl text-xs border border-slate-100 inline-block">
+                                            <span class="font-bold text-slate-800 block mb-0.5">${r.author}</span>
+                                            <p class="text-slate-700">${r.text}</p>
+                                        </div>
+                                        <div class="flex items-center gap-3 mt-1 ml-2 text-[10px] font-bold text-slate-400">
+                                            <span>${getTimeAgo(r.time || Date.now())}</span>
+                                            <button onclick="window.toggleReplyLike('${post.id}', '${c.id}', '${r.id}')" class="${rIsLiked ? 'text-red-500' : 'hover:text-slate-600'} transition-colors">Suka ${(r.likes || []).length > 0 ? `(${(r.likes || []).length})` : ''}</button>
+                                        </div>
+                                    </div>
+                                </div>`;
+                            }).join('') + `</div>`;
+                    }
+
+                    return `
+                    <div class="flex gap-2.5 items-start flex-col w-full">
+                        <div class="flex gap-2.5 items-start w-full">
+                            <img src="${c.avatar}" class="w-8 h-8 rounded-full border shrink-0 mt-0.5 object-cover border-slate-100">
+                            <div class="flex-1">
+                                <div class="bg-slate-50 px-3.5 py-2.5 rounded-2xl text-sm border border-slate-100 inline-block">
+                                    <span class="font-bold text-slate-800 block mb-0.5">${c.author}</span>
+                                    <p class="text-slate-700">${c.text}</p>
+                                </div>
+                                <div class="flex items-center gap-3 mt-1 ml-2 text-[10px] font-bold text-slate-400">
+                                    <span>${getTimeAgo(c.time || Date.now())}</span>
+                                    <button onclick="window.toggleCommentLike('${post.id}', '${c.id}')" class="${cIsLiked ? 'text-red-500' : 'hover:text-slate-600'} transition-colors">Suka ${(c.likes || []).length > 0 ? `(${(c.likes || []).length})` : ''}</button>
+                                    <button onclick="window.toggleReplyInput('${c.id}')" class="hover:text-slate-600 transition-colors">Balas</button>
+                                </div>
+                            </div>
+                        </div>
+                        ${repliesHTML}
+                        <div id="reply-input-${c.id}" class="hidden pl-10 w-full mt-2 flex gap-2 items-center">
+                            <img src="${currentUser ? currentUser.avatar : ''}" class="w-6 h-6 rounded-full border border-slate-200 object-cover">
+                            <input type="text" id="reply-text-${c.id}" placeholder="Balas komentar..." class="flex-1 bg-white border border-slate-200 rounded-full px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-brand-500" onkeypress="if(event.key === 'Enter') window.submitReply('${post.id}', '${c.id}')">
+                            <button onclick="window.submitReply('${post.id}', '${c.id}')" class="bg-brand-500 text-white p-1.5 rounded-full hover:bg-brand-600"><i data-lucide="send" class="w-3 h-3"></i></button>
+                        </div>
+                    </div>`;
+                }).join('');
+
                 const postHTML = `
                 <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col gap-3">
                     <div class="flex justify-between items-start">
@@ -1463,19 +1620,12 @@
                         </div>
                     </div>
                     <div id="comments-${post.id}" class="${openCommentSections.includes(post.id) ? '' : 'hidden'} mt-3 pt-4 border-t border-slate-100 pl-0 sm:pl-14 transition-all">
-                        <div class="flex flex-col gap-3 mb-4">
-                            ${(post.commentsList || []).map(c => `
-                                <div class="flex gap-2.5 items-start">
-                                    <img src="${c.avatar}" class="w-8 h-8 rounded-full bg-slate-50 object-cover shrink-0 mt-0.5 border border-slate-100">
-                                    <div class="bg-slate-50 px-3.5 py-2.5 rounded-2xl text-sm flex-1 border border-slate-100">
-                                        <span class="font-bold text-slate-800 block mb-0.5">${c.author}</span><p class="text-slate-700">${c.text}</p>
-                                    </div>
-                                </div>
-                            `).join('')}
+                        <div class="flex flex-col gap-4 mb-4">
+                            ${commentsHTML}
                         </div>
-                        <div class="flex gap-2 items-center">
+                        <div class="flex gap-2 items-center mt-2">
                             <img src="${currentUser ? currentUser.avatar : ''}" class="w-8 h-8 rounded-full bg-slate-50 object-cover shrink-0 border border-slate-200">
-                            <input type="text" id="comment-input-${post.id}" placeholder="Tulis komentar..." class="flex-1 bg-slate-50 border border-slate-200 rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-brand-500/20 outline-none transition-colors">
+                            <input type="text" id="comment-input-${post.id}" placeholder="Tulis komentar..." class="flex-1 bg-slate-50 border border-slate-200 rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-brand-500/20 outline-none transition-colors" onkeypress="if(event.key === 'Enter') window.submitComment('${post.id}')">
                             <button onclick="window.submitComment('${post.id}')" class="bg-brand-500 text-white p-2.5 rounded-full hover:bg-brand-600 transition-colors active:scale-95"><i data-lucide="send" class="w-4 h-4 -ml-0.5 mt-0.5"></i></button>
                         </div>
                     </div>
